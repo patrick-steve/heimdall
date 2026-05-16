@@ -1,13 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { AgentRegistry } from "@/components/AgentRegistry";
-import { ChainCanvas } from "@/components/ChainCanvas";
+import { ChainPanel } from "@/components/ChainPanel";
 import { CompareView } from "@/components/CompareView";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { IncidentReport } from "@/components/IncidentReport";
 import { ReplayMode } from "@/components/ReplayMode";
-import { RuleSidebar } from "@/components/RuleSidebar";
-import { RuleSummary } from "@/components/RuleSummary";
 import { ScenarioRail } from "@/components/ScenarioRail";
 import { Stage } from "@/components/Stage";
 import { Timeline } from "@/components/Timeline";
@@ -127,8 +124,10 @@ export default function Dashboard() {
       <div className="mb-3">
         <ScenarioRail
           vertical={vertical}
+          compareOpen={compareOpen}
           onLaunch={() => { /* WS drives state */ }}
           onReset={clearActive}
+          onToggleCompare={() => setCompareOpen((v) => !v)}
         />
       </div>
 
@@ -142,7 +141,7 @@ export default function Dashboard() {
             onClose={() => setCompareOpen(false)}
           />
           {/* Compact secondary row: agent registry + timeline only.
-              RuleSummary, RuleSidebar, IncidentReport, Replay are all
+              Rule cards, evidence, incident reports, and replay are
               integrated inside CompareView when it is open. */}
           <div className="grid grid-cols-12 gap-3 mt-3">
             <aside className="col-span-12 lg:col-span-4">
@@ -155,46 +154,22 @@ export default function Dashboard() {
         </>
       ) : (
         <>
-          <div className="grid grid-cols-12 gap-3 mb-3">
-            <div className="col-span-12 lg:col-span-9">
-              {hasActiveChain ? (
-                <div className="card relative" style={{ minHeight: "440px", height: "min(640px, calc(100vh - 360px))" }}>
-                  <ChainCanvas events={filteredEvents} agents={agents} filterChainId={activeChainId ?? undefined} />
-                </div>
-              ) : (
-                <Stage vertical={vertical} onLaunch={() => { /* WS drives state */ }} />
-              )}
-            </div>
-            <aside className="col-span-12 lg:col-span-3 space-y-3">
-              <RuleSummary events={events} filterChainId={activeChainId ?? undefined} />
-              <RuleSidebar events={filteredEvents} filterChainId={activeChainId ?? undefined} />
-            </aside>
-          </div>
+          {hasActiveChain && activeChainId ? (
+            <ChainPanel events={events} agents={agents} chainId={activeChainId} />
+          ) : (
+            <Stage vertical={vertical} onLaunch={() => { /* WS drives state */ }} />
+          )}
 
-          <div className="grid grid-cols-12 gap-3">
-            <aside className="col-span-12 lg:col-span-3">
+          {/* Supporting row — even widths, all visible, no dead cards. */}
+          <div className="grid grid-cols-12 gap-3 mt-3">
+            <aside className="col-span-12 lg:col-span-4">
               <AgentRegistry vertical={vertical} refreshNonce={registryNonce} />
             </aside>
-            <div className="col-span-12 lg:col-span-3 space-y-3">
+            <div className="col-span-12 lg:col-span-4">
               <ReplayMode refreshNonce={chainsNonce} onReplayStart={(c) => setActiveChainId(c)} />
-              <button
-                type="button"
-                onClick={() => setCompareOpen((v) => !v)}
-                className="card w-full px-4 py-3 text-left hover:bg-edge/40 transition"
-              >
-                <div className="font-display text-sm font-semibold text-zinc-100">
-                  Compare Heimdall ON vs OFF
-                </div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 mt-1">
-                  side-by-side, same attack
-                </div>
-              </button>
             </div>
-            <div className="col-span-12 lg:col-span-3">
+            <div className="col-span-12 lg:col-span-4">
               <Timeline events={events} />
-            </div>
-            <div className="col-span-12 lg:col-span-3">
-              <IncidentReport events={events} chainId={activeChainId} />
             </div>
           </div>
         </>

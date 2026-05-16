@@ -5,8 +5,10 @@ import { api } from "@/lib/api";
 
 interface Props {
   vertical: string;
+  compareOpen: boolean;
   onLaunch?: (name: string) => void;
   onReset?: () => void;
+  onToggleCompare?: () => void;
 }
 
 interface RailItem {
@@ -33,7 +35,7 @@ const RAILS: Record<string, RailItem[]> = {
   customer_service: [],
 };
 
-export function ScenarioRail({ vertical, onLaunch, onReset }: Props) {
+export function ScenarioRail({ vertical, compareOpen, onLaunch, onReset, onToggleCompare }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const rail = RAILS[vertical] ?? [];
 
@@ -44,12 +46,26 @@ export function ScenarioRail({ vertical, onLaunch, onReset }: Props) {
           <span className="font-mono text-[10px] uppercase tracking-widest text-warn">scenarios · configuration only</span>
           <span className="font-mono text-[11px] text-zinc-500">policy.yaml loaded · no agents or tools wired</span>
         </div>
-        <button
-          onClick={onReset}
-          className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 hover:text-bifrost transition"
-        >
-          clear
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onToggleCompare}
+            className={clsx(
+              "font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 transition border",
+              compareOpen
+                ? "border-bifrost bg-rune/15 text-bifrost"
+                : "border-edge text-zinc-400 hover:bg-edge/60",
+            )}
+          >
+            compare on vs off
+          </button>
+          <button
+            onClick={onReset}
+            className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 hover:text-bifrost transition"
+          >
+            clear
+          </button>
+        </div>
       </div>
     );
   }
@@ -98,6 +114,37 @@ export function ScenarioRail({ vertical, onLaunch, onReset }: Props) {
           </div>
         </button>
       ))}
+
+      {/* Promoted Compare toggle. Lives in the rail so it is always visible,
+          never buried in a tertiary card. */}
+      <button
+        type="button"
+        onClick={onToggleCompare}
+        className={clsx(
+          "px-4 py-2.5 text-left transition shrink-0 min-w-[180px]",
+          compareOpen ? "bg-rune/15" : "hover:bg-edge/60",
+        )}
+        title="Side-by-side comparison of the same attack with Heimdall on and off"
+      >
+        <div className="flex items-center justify-between">
+          <span className={clsx(
+            "font-display text-[13px] font-semibold tracking-tight",
+            compareOpen ? "text-bifrost" : "text-zinc-100",
+          )}>
+            {compareOpen ? "Exit compare" : "Compare ON vs OFF"}
+          </span>
+          <span className={clsx(
+            "font-mono text-[10px] uppercase tracking-widest",
+            compareOpen ? "text-bifrost" : "text-zinc-600",
+          )}>
+            {compareOpen ? "live" : "▷"}
+          </span>
+        </div>
+        <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 mt-1">
+          {compareOpen ? "back to live chain" : "same attack, both verdicts"}
+        </div>
+      </button>
+
       <button
         type="button"
         onClick={onReset}
