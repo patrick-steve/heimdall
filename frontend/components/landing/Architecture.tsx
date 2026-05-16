@@ -30,7 +30,7 @@ const LAYER2_PRIMITIVES = [
 export function Architecture() {
   return (
     <Section index="02" label="ARCHITECTURE" id="architecture">
-      <div className="grid grid-cols-12 gap-8 mb-20 md:mb-24">
+      <div className="grid grid-cols-12 gap-8 mb-12 md:mb-16">
         <Reveal as="div" className="col-span-12 md:col-span-7">
           <h2 className="display text-3xl md:text-4xl font-semibold text-zinc-100 mb-6">
             Two layers. One mechanism.

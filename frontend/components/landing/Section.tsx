@@ -23,7 +23,7 @@ interface Props {
  * and the eyebrow label fades in.
  */
 export function Section({ index, label, id, spacing = "default", children }: Props) {
-  const padY = spacing === "tight" ? "py-20 md:py-24" : "py-24 md:py-36";
+  const padY = spacing === "tight" ? "py-12 md:py-16" : "py-16 md:py-24";
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [drawn, setDrawn] = useState(false);
 
@@ -53,7 +53,7 @@ export function Section({ index, label, id, spacing = "default", children }: Pro
     <section id={id} className={`${padY}`}>
       <div className="mx-auto max-w-page_wide px-6 md:px-12">
         {(index || label) && (
-          <div ref={headerRef} className="flex items-center gap-4 mb-12 md:mb-16">
+          <div ref={headerRef} className="flex items-center gap-4 mb-8 md:mb-12">
             <div className={`hairline flex-1 ${drawn ? "hairline-draw" : ""}`} style={{ transform: drawn ? undefined : "scaleX(0)" }} />
             <span
               className="eyebrow whitespace-nowrap"

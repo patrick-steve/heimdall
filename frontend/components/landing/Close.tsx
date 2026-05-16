@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export function Close() {
   return (
-    <section className="py-32 md:py-48 border-t border-edge">
+    <section className="py-20 md:py-28 border-t border-edge">
       <div className="mx-auto max-w-page_wide px-6 md:px-12">
-        <div className="grid grid-cols-12 gap-8 items-end mb-16">
+        <div className="grid grid-cols-12 gap-8 items-end mb-10">
           <div className="col-span-12 md:col-span-8">
             <div className="eyebrow text-zinc-600 mb-6">§ 06 / NEXT</div>
             <h2 className="display text-4xl md:text-6xl font-bold text-zinc-100 mb-8 leading-[0.95]">
@@ -25,7 +25,7 @@ export function Close() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mb-24">
+        <div className="flex flex-wrap items-center gap-3 mb-16">
           <Link
             href="/dashboard"
             className="group inline-flex items-center gap-3 bg-rune hover:bg-rune/90 text-white font-mono text-[12px] uppercase tracking-wider px-5 py-3 transition"

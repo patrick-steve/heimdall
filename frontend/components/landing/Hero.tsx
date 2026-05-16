@@ -17,21 +17,27 @@ export function Hero() {
         }}
         aria-hidden
       />
-      <div className="relative mx-auto max-w-page_wide px-6 md:px-12 pt-16 md:pt-28 pb-24 md:pb-36">
+      <div className="relative mx-auto max-w-page_wide px-6 md:px-12 pt-14 md:pt-20 pb-16 md:pb-24">
         <div className="grid grid-cols-12 gap-8 md:gap-16">
           <div className="col-span-12 md:col-span-8">
-            <div className="eyebrow mb-8 inline-flex items-center gap-3">
+            <div className="eyebrow mb-6 inline-flex items-center gap-3">
               <span className="inline-block w-1.5 h-1.5 bg-allow animate-pulse_soft" />
               <span className="text-bifrost">§ 00</span>
               <span className="text-zinc-700">/</span>
               HEIMDALL · 2026
             </div>
-            <h1 className="display font-bold text-4xl md:text-6xl lg:text-7xl text-zinc-100 mb-8 animate-rise">
+            <h1 className="display font-bold text-4xl md:text-6xl lg:text-7xl text-zinc-100 mb-6 animate-rise">
               Nothing crosses<br className="hidden md:inline" /> without being seen.
             </h1>
-            <p className="max-w-prose text-lg text-zinc-400 leading-relaxed mb-10">
-              A runtime governance layer for AI agent delegation chains. Capability attenuation at the
-              protocol layer, configurable policy at the rule layer. Built on Veea Lobster Trap.
+            <p className="max-w-prose text-lg md:text-xl text-zinc-300 leading-snug mb-4">
+              AI agents now sign transactions, write to patient records, and call each other in long
+              chains. Nobody verifies the authority moving through those chains.{" "}
+              <span className="text-bifrost">Heimdall does.</span>
+            </p>
+            <p className="max-w-prose text-[15px] text-zinc-500 leading-relaxed mb-8">
+              Two layers, one mechanism. At the protocol boundary, credentials can only weaken across
+              hops, never strengthen, so a class of attacks is unrepresentable. At the policy boundary,
+              six rule primitives expressed as YAML catch everything else. Built on Veea Lobster Trap.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
@@ -74,21 +80,21 @@ export function Hero() {
               </a>
             </div>
 
-            <dl className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-y-6 gap-x-8 max-w-2xl">
+            <dl className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-8 max-w-2xl">
               <div>
-                <dt className="eyebrow text-zinc-600 mb-2">Layers</dt>
+                <dt className="eyebrow text-zinc-600 mb-1.5">Layers</dt>
                 <dd className="font-mono text-[13px] text-zinc-300">2</dd>
               </div>
               <div>
-                <dt className="eyebrow text-zinc-600 mb-2">Primitives</dt>
+                <dt className="eyebrow text-zinc-600 mb-1.5">Primitives</dt>
                 <dd className="font-mono text-[13px] text-zinc-300">6</dd>
               </div>
               <div>
-                <dt className="eyebrow text-zinc-600 mb-2">Verticals</dt>
+                <dt className="eyebrow text-zinc-600 mb-1.5">Verticals</dt>
                 <dd className="font-mono text-[13px] text-zinc-300">3</dd>
               </div>
               <div>
-                <dt className="eyebrow text-zinc-600 mb-2">License</dt>
+                <dt className="eyebrow text-zinc-600 mb-1.5">License</dt>
                 <dd className="font-mono text-[13px] text-zinc-300">MIT</dd>
               </div>
             </dl>

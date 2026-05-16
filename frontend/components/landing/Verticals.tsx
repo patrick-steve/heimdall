@@ -60,7 +60,7 @@ function statusLabel(s: Vertical["status"]) {
 export function Verticals() {
   return (
     <Section index="03" label="VERTICALS" id="verticals">
-      <div className="grid grid-cols-12 gap-8 mb-16 md:mb-24">
+      <div className="grid grid-cols-12 gap-8 mb-10 md:mb-14">
         <div className="col-span-12 md:col-span-6">
           <h2 className="display text-3xl md:text-4xl font-semibold text-zinc-100 mb-6">
             Same engine.<br />
