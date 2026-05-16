@@ -30,14 +30,16 @@ export function Hero() {
               Nothing crosses<br className="hidden md:inline" /> without being seen.
             </h1>
             <p className="max-w-prose text-lg md:text-xl text-zinc-300 leading-snug mb-4">
-              AI agents now sign transactions, write to patient records, and call each other in long
-              chains. Nobody verifies the authority moving through those chains.{" "}
-              <span className="text-bifrost">Heimdall does.</span>
+              AI agents now sign transactions and write to patient records on their own. When they
+              call each other, nobody is watching the chain of authority.{" "}
+              <span className="text-bifrost">Heimdall is.</span>
             </p>
             <p className="max-w-prose text-[15px] text-zinc-500 leading-relaxed mb-8">
-              Two layers, one mechanism. At the protocol boundary, credentials can only weaken across
-              hops, never strengthen, so a class of attacks is unrepresentable. At the policy boundary,
-              six rule primitives expressed as YAML catch everything else. Built on Veea Lobster Trap.
+              Most security tools either trust agents or scan them for known bad patterns. Heimdall
+              does neither. It makes a whole class of attacks{" "}
+              <span className="text-zinc-200">impossible to even attempt</span>, like a locked door
+              rather than a guard who has to recognise the intruder. Then it watches behaviour for
+              everything else. Built on Veea Lobster Trap.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
