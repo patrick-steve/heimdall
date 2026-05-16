@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { getSessionId } from "./session";
 import type { WsEvent } from "./types";
 
 const WS_URL =
@@ -15,11 +16,18 @@ export function useWebSocket(onEvent: (e: WsEvent) => void): void {
     let retry = 0;
 
     const connect = () => {
-      ws = new WebSocket(WS_URL);
+      const sid = getSessionId();
+      const url = `${WS_URL}?session_id=${encodeURIComponent(sid)}`;
+      ws = new WebSocket(url);
       ws.onopen = () => { retry = 0; };
       ws.onmessage = (msg) => {
         try {
           const data = JSON.parse(msg.data) as WsEvent;
+          // Defensive: if the backend included a session_id and it doesn't
+          // match ours, drop the event. Backend already routes by session,
+          // so this should never trigger; it's a belt-and-braces guard.
+          const stamped = (data as { session_id?: string }).session_id;
+          if (stamped && stamped !== sid) return;
           cbRef.current(data);
         } catch {
           /* ignore non-json keepalives */

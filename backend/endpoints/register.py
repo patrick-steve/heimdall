@@ -1,35 +1,45 @@
-"""Agent registration / listing. Reads from the active vertical's agents.yaml
-and upserts rows into the `agents` table.
+"""Agent registration / listing.
 
-`is_dormant` is computed from `registered_days_ago` minus a "last seen"
-heuristic — a shadow agent registered 92 days ago and idle counts as dormant.
+Refactored for per-session state: every vertical's agents.yaml is synced
+into the DB once at startup. Each session reads only its own active
+vertical via the policy_loader (which is itself session-keyed). The
+`/api/register/sync` endpoint re-syncs the caller's current vertical
+on demand; it is otherwise idempotent and rarely needed at runtime.
 """
 from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
 
+import yaml
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from backend.config import settings
 from backend.db import Agent, get_db, utcnow
-from backend.policy_loader import get_active_agents, get_active_vertical
+from backend.policy_loader import (
+    AVAILABLE_VERTICALS,
+    get_active_agents,
+    get_active_vertical,
+)
 
 router = APIRouter()
 
 
-@router.post("/register/sync")
-async def sync_agents(request: Request, db: Session = Depends(get_db)) -> dict[str, Any]:
-    """Upsert all agents defined in the active vertical's agents.yaml."""
-    vertical = get_active_vertical()
-    yaml_agents = get_active_agents()
-    ws_manager = request.app.state.ws_manager
+def _agents_yaml_for(vertical: str) -> list[dict[str, Any]]:
+    path = settings.REPO_ROOT / "verticals" / vertical / "agents.yaml"
+    if not path.exists():
+        return []
+    with open(path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return list(data.get("agents", []))
 
-    synced: list[dict[str, Any]] = []
-    for spec in yaml_agents:
+
+def _upsert(db: Session, vertical: str, specs: list[dict[str, Any]]) -> int:
+    count = 0
+    for spec in specs:
         registered_days_ago = int(spec.get("registered_days_ago", 0))
         registered_at = utcnow() - timedelta(days=registered_days_ago)
-        # Heuristic: a shadow agent or one not seen in 60+ days is dormant.
         is_dormant = bool(spec.get("dormant", False)) or registered_days_ago >= 60
 
         existing = db.query(Agent).filter_by(id=spec["id"]).first()
@@ -42,9 +52,8 @@ async def sync_agents(request: Request, db: Session = Depends(get_db)) -> dict[s
             existing.role = spec["role"]
             existing.registered_at = registered_at
             existing.is_dormant = is_dormant
-            agent = existing
         else:
-            agent = Agent(
+            db.add(Agent(
                 id=spec["id"],
                 display_name=spec["display_name"],
                 tenant_id=spec["tenant_id"],
@@ -55,17 +64,37 @@ async def sync_agents(request: Request, db: Session = Depends(get_db)) -> dict[s
                 registered_at=registered_at,
                 last_active_at=registered_at,
                 is_dormant=is_dormant,
-            )
-            db.add(agent)
-        synced.append({"id": agent.id, "role": agent.role, "is_dormant": agent.is_dormant})
-
+            ))
+        count += 1
     db.commit()
-    await ws_manager.broadcast({"type": "agents_synced", "vertical": vertical, "count": len(synced)})
-    return {"vertical": vertical, "agents": synced}
+    return count
+
+
+def sync_all_verticals(db: Session) -> dict[str, int]:
+    """Called once at startup. Idempotent. Per-vertical row counts returned."""
+    result: dict[str, int] = {}
+    for v in AVAILABLE_VERTICALS:
+        result[v] = _upsert(db, v, _agents_yaml_for(v))
+    return result
+
+
+@router.post("/register/sync")
+async def sync_agents(request: Request, db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Re-sync the caller's current vertical from YAML."""
+    vertical = get_active_vertical()
+    yaml_agents = get_active_agents()
+    ws_manager = request.app.state.ws_manager
+    count = _upsert(db, vertical, yaml_agents)
+    await ws_manager.broadcast({"type": "agents_synced", "vertical": vertical, "count": count})
+    return {
+        "vertical": vertical,
+        "agents": [{"id": s["id"], "role": s["role"]} for s in yaml_agents],
+    }
 
 
 @router.get("/agents")
 async def list_agents(db: Session = Depends(get_db)) -> dict[str, Any]:
+    """Return agents for the caller's active vertical only."""
     vertical = get_active_vertical()
     rows = db.query(Agent).filter_by(vertical=vertical).all()
     return {

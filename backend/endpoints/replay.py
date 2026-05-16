@@ -20,9 +20,12 @@ BASE_HOP_DELAY_S = 1.0
 
 @router.get("/replay/chains")
 async def list_chains(db: Session = Depends(get_db)) -> dict[str, Any]:
-    """Returns distinct chain_ids with summary info, newest first."""
+    """Returns distinct chain_ids visible to the current session, newest first."""
+    from backend.session import current_session_id
+    sid = current_session_id()
     rows = (
         db.query(ChainCredential)
+        .filter(ChainCredential.session_id == sid)
         .order_by(ChainCredential.issued_at.desc())
         .all()
     )

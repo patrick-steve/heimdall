@@ -59,6 +59,7 @@ class ChainCredential(Base):
     expires_at = Column(DateTime)
     signature = Column(Text)
     chain_id = Column(String, nullable=False, index=True)
+    session_id = Column(String, nullable=False, index=True, default="default")
 
 
 class RuleEvaluation(Base):
@@ -72,6 +73,7 @@ class RuleEvaluation(Base):
     reason = Column(Text)
     matched_segment = Column(Text)
     evaluated_at = Column(DateTime, default=utcnow)
+    session_id = Column(String, nullable=False, index=True, default="default")
 
 
 class Incident(Base):
@@ -83,6 +85,7 @@ class Incident(Base):
     summary = Column(Text)
     full_report = Column(Text)
     created_at = Column(DateTime, default=utcnow)
+    session_id = Column(String, nullable=False, index=True, default="default")
 
 
 class AgentBehaviorBaseline(Base):

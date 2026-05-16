@@ -1,46 +1,65 @@
-"""Loads vertical-specific YAML at runtime and tracks active vertical state.
+"""Loads vertical-specific YAML at runtime and tracks per-session state.
 
-State is process-global by design — Heimdall is single-org, single-process,
-localhost-only (per the explicit NOT-BUILDING list).
+Originally single-tenant; refactored to be session-keyed via ContextVar
+so two visitors hitting the same backend cannot observe each other's
+toggles, vertical, or in-flight scenarios. See backend/session.py for
+how the active session id is plumbed through.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 import yaml
 
 from backend.config import settings
+from backend.session import current_session_id
 
 VERTICALS_DIR: Path = settings.REPO_ROOT / "verticals"
 AVAILABLE_VERTICALS: list[str] = ["defi", "healthcare", "customer_service"]
 
-_active_vertical: str = "defi"
-_heimdall_enabled: bool = True
+
+@dataclass
+class SessionPolicyState:
+    """Mutable, per-session policy state. One instance per session id."""
+    active_vertical: str = "defi"
+    heimdall_enabled: bool = True
+
+
+_sessions: dict[str, SessionPolicyState] = {}
+_sessions_lock = Lock()
+
+
+def _state() -> SessionPolicyState:
+    sid = current_session_id()
+    with _sessions_lock:
+        if sid not in _sessions:
+            _sessions[sid] = SessionPolicyState()
+        return _sessions[sid]
 
 
 def set_active_vertical(name: str) -> None:
-    global _active_vertical
     if name not in AVAILABLE_VERTICALS:
         raise ValueError(f"Unknown vertical: {name}")
-    _active_vertical = name
+    _state().active_vertical = name
 
 
 def get_active_vertical() -> str:
-    return _active_vertical
+    return _state().active_vertical
 
 
 def get_heimdall_enabled() -> bool:
-    return _heimdall_enabled
+    return _state().heimdall_enabled
 
 
 def set_heimdall_enabled(enabled: bool) -> None:
-    global _heimdall_enabled
-    _heimdall_enabled = bool(enabled)
+    _state().heimdall_enabled = bool(enabled)
 
 
 def _load_yaml(relative_path: str) -> dict[str, Any]:
-    path = VERTICALS_DIR / _active_vertical / relative_path
+    path = VERTICALS_DIR / get_active_vertical() / relative_path
     if not path.exists():
         return {}
     with open(path, "r", encoding="utf-8") as f:
@@ -61,3 +80,8 @@ def get_active_prompts() -> dict[str, str]:
 
 def get_active_lobster_trap_rules() -> list[dict[str, Any]]:
     return list(_load_yaml("lobster_trap.yaml").get("rules", []))
+
+
+def session_count() -> int:
+    with _sessions_lock:
+        return len(_sessions)

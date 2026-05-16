@@ -28,6 +28,7 @@ from backend.jwt_chain import (
 )
 from backend.policy_engine import evaluate_policies
 from backend.policy_loader import get_active_policies, get_heimdall_enabled
+from backend.session import current_session_id
 
 router = APIRouter()
 
@@ -47,6 +48,7 @@ def _persist_cred(db: Session, cred: dict[str, Any]) -> ChainCredential:
         signature=cred["signature"],
         chain_id=cred["chain_id"],
         issued_at=utcnow(),
+        session_id=current_session_id(),
     )
     db.add(row)
     db.commit()
@@ -72,6 +74,7 @@ async def _persist_evaluations(
         result=result,
         reason=reason,
         matched_segment=matched_segment,
+        session_id=current_session_id(),
     ))
     db.commit()
     await ws_manager.broadcast({

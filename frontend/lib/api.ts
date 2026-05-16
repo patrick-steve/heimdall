@@ -1,11 +1,20 @@
+import { getSessionId } from "./session";
 import type { AgentRow } from "./types";
 
 export const BACKEND = process.env.NEXT_PUBLIC_HEIMDALL_API ?? "http://127.0.0.1:8000";
 
+function sessionHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    "X-Heimdall-Session": getSessionId(),
+    ...extra,
+  };
+}
+
 async function call<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BACKEND}${path}`, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: sessionHeaders(),
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
@@ -42,9 +51,11 @@ export const api = {
   replayChain: (chainId: string, speed: number) =>
     call("POST", `/api/replay/${chainId}?speed=${speed}`),
 
-  generateReport: async (chainId: string): Promise<Response> => {
-    return fetch(`${BACKEND}/api/audit/report/${chainId}`, { method: "POST" });
-  },
+  generateReport: async (chainId: string): Promise<Response> =>
+    fetch(`${BACKEND}/api/audit/report/${chainId}`, {
+      method: "POST",
+      headers: sessionHeaders(),
+    }),
   reportMdUrl: (chainId: string) => `${BACKEND}/api/audit/report/${chainId}.md`,
   reportPdfUrl: (chainId: string) => `${BACKEND}/api/audit/report/${chainId}.pdf`,
 };
