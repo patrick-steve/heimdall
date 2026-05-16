@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body { background: #0b0d10; color: #e5e7eb; }
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection { background: rgba(124, 58, 237, 0.35); color: #e5e7eb; }
+
+/* Soft grid backdrop only on the dashboard route (.rune-grid is applied explicitly). */
+.rune-grid {
+  background-image:
+    linear-gradient(rgba(124,58,237,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,58,237,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.card {
+  background-color: #11151b;
+  border: 1px solid #1c232c;
+  border-radius: 0.75rem;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+
+/* Tracked uppercase mono labels used as section dividers, table headers, eyebrow lines. */
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+/* Hairline rule with a soft fade — used to separate landing-page sections. */
+.hairline {
+  height: 1px;
+  background: linear-gradient(to right, transparent 0%, #1c232c 12%, #1c232c 88%, transparent 100%);
+  transform-origin: left center;
+}
+.hairline-draw {
+  animation: hairline-draw 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: scaleX(0);
+}
+@keyframes hairline-draw {
+  to { transform: scaleX(1); }
+}
+
+/* Cascade pulses on Layer 1 invariants */
+.cascade-pulse {
+  animation: cascade-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes cascade-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+
+/* Vertical row sweep underline on hover */
+.vrow {
+  position: relative;
+}
+.vrow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(to right, #7c3aed 0%, #a78bfa 50%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vrow:hover::after { transform: scaleX(1); }
+
+/* Type-on for terminal-like blocks. Width animates by ch units. */
+.typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: pre;
+  border-right: 1px solid #a78bfa;
+  animation: typewriter 1400ms steps(60, end) forwards, caret-blink 1.1s steps(1) 1400ms infinite;
+}
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+@keyframes caret-blink {
+  0%, 50%  { border-color: #a78bfa; }
+  51%, 100% { border-color: transparent; }
+}
+
+/* Display headings: tight tracking + balanced wrap. */
+.display {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+/* A subtle scanning sweep used on the live status panel + Layer 1 ribbon. */
+.scan {
+  position: relative;
+  overflow: hidden;
+}
+.scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, transparent 48%, rgba(167,139,250,0.05) 50%, transparent 52%, transparent 100%);
+  pointer-events: none;
+  animation: scan 9s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes scan {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Layer-1 protocol ribbon: subtle violet wash that distinguishes Layer 1 from Layer 2 visually. */
+.layer1-wash {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(124,58,237,0.10), transparent 60%),
+    linear-gradient(180deg, rgba(124,58,237,0.06), rgba(124,58,237,0.0));
+}

@@ -1,0 +1,31 @@
+# Render Blueprint for the Heimdall backend.
+#
+# Click "New +" → "Blueprint" in the Render dashboard, connect this repo,
+# and Render will read this file. You only need to set GEMINI_API_KEY in
+# the dashboard once — everything else is wired up here.
+#
+# Plan: free Web Service. 512 MB RAM, 0.1 vCPU, spins down after 15 min
+# idle, ~30-60s cold start. Acceptable for a demo, $0/month.
+
+services:
+  - type: web
+    name: heimdall-backend
+    runtime: python
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: HEIMDALL_SECRET
+        generateValue: true        # one-shot random 32-byte hex
+      - key: GEMINI_API_KEY
+        sync: false                # set manually in the Render dashboard
+      - key: HEIMDALL_ALLOWED_ORIGINS
+        sync: false                # set to your Vercel URL after first deploy
+      # Sepolia env vars stay unset → backend stays in mock mode.
+      # Lobster Trap URL stays unset → built-in mock proxy is active.

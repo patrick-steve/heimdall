@@ -1,0 +1,9 @@
+# Time-series drift: flag any chain whose root caller has never
+# participated in a chain reaching this callee in its 100-action baseline.
+policies:
+  - name: novel_chain_pattern
+    type: behavioral_drift
+    config:
+      min_history: 50
+      novel_delegation_action: FLAG
+    on_violation: FLAG

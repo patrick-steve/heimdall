@@ -1,0 +1,27 @@
+# SOC 2 compliance pack — operationalises Common Criteria CC6 (Logical
+# and Physical Access Controls) for agent-to-agent delegation.
+policies:
+  - name: cc6_1_least_privilege
+    type: chain_pattern
+    config:
+      pattern: "(scope_widen|elevated_callee)"
+    on_violation: DENY
+
+  - name: cc6_2_authorisation_lifecycle
+    type: agent_state
+    config:
+      condition: "is_dormant == true"   # ex-employee credentials = revoked
+    on_violation: DENY
+
+  - name: cc6_3_authentication_attestation
+    type: chain_depth
+    config:
+      max_depth: 4
+    on_violation: DENY
+
+  - name: cc7_2_anomaly_detection
+    type: behavioral_drift
+    config:
+      min_history: 50
+      novel_delegation_action: FLAG
+    on_violation: FLAG

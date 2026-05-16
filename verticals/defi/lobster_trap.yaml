@@ -1,0 +1,18 @@
+# Custom Lobster Trap rules consumed by backend/lobster_client.py
+# (or by the real Veea binary if LOBSTER_TRAP_URL is set).
+rules:
+  - name: detect_external_injection
+    pattern: "INJECTED PROMPT|invoke .* with .* scope|execute:trade"
+    action: FLAG
+    metadata:
+      detected_intent: "external content attempting to invoke an agent with elevated scope"
+
+  - name: detect_self_promote
+    pattern: "(?i)grant yourself|escalate|widen scope"
+    action: FLAG
+    metadata:
+      detected_intent: "attempted privilege escalation"
+
+  - name: log_all_metadata
+    pattern: ".*"
+    action: LOG

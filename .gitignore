@@ -1,0 +1,47 @@
+# Secrets / keys
+.env
+.env.local
+GEMINI_KEY.txt
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# SQLite
+*.db
+*.db-journal
+heimdall.db
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# AI assistant tooling
+.claude/
+
+# Heimdall runtime
+incident_reports/
+audit_logs/

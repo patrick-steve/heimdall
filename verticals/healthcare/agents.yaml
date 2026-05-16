@@ -1,0 +1,39 @@
+agents:
+  - id: agent-triage-001
+    role: coordinator
+    display_name: "Triage Agent"
+    tenant_id: tenant-stmary-hospital
+    scope:
+      - "read:patient_record"
+      - "write:patient_record"
+      - "read:lab_results"
+    owner: "drchen@stmary.example"
+    registered_days_ago: 45
+
+  - id: agent-records-001
+    role: data_fetcher
+    display_name: "Records Agent"
+    tenant_id: tenant-stmary-hospital
+    scope:
+      - "read:patient_record"
+    owner: "records-team@stmary.example"
+    registered_days_ago: 45
+
+  - id: agent-update-001
+    role: executor
+    display_name: "Update Agent"
+    tenant_id: tenant-stmary-hospital
+    scope:
+      - "write:patient_record"
+    owner: "drchen@stmary.example"
+    registered_days_ago: 45
+
+  - id: agent-lab-integration-001
+    role: shadow
+    display_name: "Lab Integration Agent"
+    tenant_id: tenant-stmary-hospital
+    scope:
+      - "write:patient_record"  # over-permissioned, dormant
+    owner: "vendor-LabsInc@external (contract ended)"
+    registered_days_ago: 180
+    dormant: true

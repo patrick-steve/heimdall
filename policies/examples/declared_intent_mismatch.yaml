@@ -1,0 +1,9 @@
+# If Lobster Trap's detected_intent diverges from the agent's
+# declared_intent on the same hop, flag (or deny). Catches prompt
+# injection that subverts an agent's stated purpose mid-chain.
+policies:
+  - name: declared_intent_mismatch
+    type: intent_mismatch
+    config:
+      threshold_similarity: 0.3
+    on_violation: FLAG

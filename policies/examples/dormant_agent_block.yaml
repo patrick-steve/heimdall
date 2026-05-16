@@ -1,0 +1,9 @@
+# Block any chain that contains an agent flagged dormant in the registry.
+# Catches the Step Finance pattern: forgotten over-permissioned agents
+# reactivated months after the human who owned them left the company.
+policies:
+  - name: dormant_agent_block
+    type: agent_state
+    config:
+      condition: "is_dormant == true"
+    on_violation: DENY

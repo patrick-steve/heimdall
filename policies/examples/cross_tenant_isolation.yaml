@@ -1,0 +1,11 @@
+# Layer 1 enforces tenant_id consistency at credential construction —
+# this YAML mirror exists so a security reviewer reading the policy pack
+# can see tenant isolation as a stated policy and not just a hidden
+# protocol invariant. Heimdall short-circuits at Layer 1 long before
+# this rule runs.
+policies:
+  - name: cross_tenant_isolation
+    type: chain_pattern
+    config:
+      pattern: "tenant-[a-z0-9-]+->tenant-(?!\\1)"  # cross-tenant marker (illustrative)
+    on_violation: DENY

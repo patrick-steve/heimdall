@@ -1,0 +1,48 @@
+# Customer Service vertical policy pack.
+# YAML-only vertical — no Python tooling. A reference implementer would
+# plug in real refund / CRM APIs in tools.py following the DeFi/Healthcare
+# pattern. The policy itself is fully functional today.
+policies:
+  - name: chain_depth_limit
+    type: chain_depth
+    config:
+      max_depth: 4
+    on_violation: DENY
+
+  - name: dormant_handler_block
+    type: agent_state
+    config:
+      condition: "is_dormant == true"
+    on_violation: DENY
+
+  - name: refund_amount_by_depth
+    type: value_threshold
+    config:
+      thresholds:
+        - depth: 2
+          max_value: 500
+        - depth: 3
+          max_value: 50
+        - depth: 4
+          max_value: 10
+    on_violation: DENY
+
+  - name: bot_to_executor_pattern
+    type: chain_pattern
+    config:
+      match_by: role
+      pattern: ".*->shadow->.*executor"
+    on_violation: DENY
+
+  - name: declared_intent_check
+    type: intent_mismatch
+    config:
+      threshold_similarity: 0.3
+    on_violation: FLAG
+
+  - name: behavioral_drift_check
+    type: behavioral_drift
+    config:
+      min_history: 50
+      novel_delegation_action: FLAG
+    on_violation: FLAG

@@ -1,0 +1,9 @@
+# Stop chains that match a pattern resembling PII exfiltration:
+# data fetcher → external network egress agent → archiver.
+policies:
+  - name: pii_boundary_egress_pattern
+    type: chain_pattern
+    config:
+      match_by: role
+      pattern: ".*->data_fetcher->.*->egress.*"
+    on_violation: DENY

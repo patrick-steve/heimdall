@@ -1,0 +1,10 @@
+# Demonstrative — agent_state primitive can be extended with a
+# `condition` interpreter to reference arbitrary registry fields. For a
+# real after-hours rule the registry would carry an `active_window`
+# field and a tiny expression evaluator would compare to wall clock.
+policies:
+  - name: after_hours_restriction
+    type: agent_state
+    config:
+      condition: "is_dormant == true"  # placeholder while expression engine is v2
+    on_violation: FLAG

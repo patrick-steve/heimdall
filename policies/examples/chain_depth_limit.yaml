@@ -1,0 +1,9 @@
+# Hard cap on how many hops a delegation chain may have. Beyond a
+# certain depth chains stop being interpretable and start looking like
+# obfuscation.
+policies:
+  - name: chain_depth_limit
+    type: chain_depth
+    config:
+      max_depth: 4
+    on_violation: DENY

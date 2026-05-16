@@ -1,0 +1,33 @@
+# EU AI Act compliance pack — Article 9 (risk management),
+# Article 13 (transparency), Article 14 (human oversight).
+policies:
+  - name: article_9_risk_proportionality
+    type: value_threshold
+    config:
+      thresholds:
+        - depth: 2
+          max_value: 100000
+        - depth: 3
+          max_value: 10000
+        - depth: 4
+          max_value: 1000
+    on_violation: DENY
+
+  - name: article_13_intent_transparency
+    type: intent_mismatch
+    config:
+      threshold_similarity: 0.3
+    on_violation: DENY
+
+  - name: article_14_human_oversight_chain_depth
+    type: chain_depth
+    config:
+      max_depth: 4
+    on_violation: DENY
+
+  - name: article_14_behavioral_drift
+    type: behavioral_drift
+    config:
+      min_history: 50
+      novel_delegation_action: FLAG
+    on_violation: FLAG

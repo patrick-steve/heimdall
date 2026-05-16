@@ -1,0 +1,16 @@
+# The deeper a chain becomes, the smaller the action value may be.
+# Counterintuitive but correct: most legitimate high-value actions are
+# direct (depth 1-2); deeply nested chains carrying large values are
+# overwhelmingly malicious.
+policies:
+  - name: value_threshold_by_depth
+    type: value_threshold
+    config:
+      thresholds:
+        - depth: 2
+          max_value: 100000
+        - depth: 3
+          max_value: 10000
+        - depth: 4
+          max_value: 1000
+    on_violation: DENY

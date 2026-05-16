@@ -1,0 +1,33 @@
+# HIPAA compliance pack.
+# Maps each rule to the HIPAA section it operationalises.
+policies:
+  - name: phi_minimum_necessary    # §164.502(b) "minimum necessary" standard
+    type: value_threshold
+    config:
+      thresholds:
+        - depth: 2
+          max_value: 1000   # records returned per call
+        - depth: 3
+          max_value: 100
+        - depth: 4
+          max_value: 10
+    on_violation: DENY
+
+  - name: business_associate_isolation   # §164.504(e) BAA isolation
+    type: agent_state
+    config:
+      condition: "is_dormant == true"   # proxy for "BAA expired"
+    on_violation: DENY
+
+  - name: phi_external_egress_block  # §164.308(a)(4) Information Access
+    type: chain_pattern
+    config:
+      match_by: role
+      pattern: ".*->shadow->.*executor"
+    on_violation: DENY
+
+  - name: prompt_injection_detection   # §164.312(b) Audit Controls
+    type: intent_mismatch
+    config:
+      threshold_similarity: 0.3
+    on_violation: DENY

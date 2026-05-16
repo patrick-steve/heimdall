@@ -1,0 +1,40 @@
+agents:
+  - id: agent-portfolio-001
+    role: coordinator
+    display_name: "Portfolio Agent"
+    tenant_id: tenant-acme-corp
+    scope:
+      - "read:portfolio"
+      - "write:portfolio"
+      - "execute:trade"
+      - "read:market_data"
+    owner: "alice@acme.example"
+    registered_days_ago: 30
+
+  - id: agent-marketdata-001
+    role: data_fetcher
+    display_name: "Market Data Agent"
+    tenant_id: tenant-acme-corp
+    scope:
+      - "read:market_data"
+    owner: "bob@acme.example"
+    registered_days_ago: 30
+
+  - id: agent-executor-001
+    role: executor
+    display_name: "Executor"
+    tenant_id: tenant-acme-corp
+    scope:
+      - "execute:trade"
+    owner: "alice@acme.example"
+    registered_days_ago: 30
+
+  - id: agent-yield-optimizer-001
+    role: shadow
+    display_name: "Yield Optimizer"
+    tenant_id: tenant-acme-corp
+    scope:
+      - "execute:trade"   # legacy over-permissioning, the demo's drama
+    owner: "dev@stepfi.example (ex-employee)"
+    registered_days_ago: 92
+    dormant: true

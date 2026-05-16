@@ -1,0 +1,16 @@
+rules:
+  - name: detect_phi_export
+    pattern: "(?i)export .* outside|ssn:|date of birth|patient_id:\\s*\\d{6}"
+    action: FLAG
+    metadata:
+      detected_intent: "external content attempting to export PHI"
+
+  - name: detect_diagnostic_injection
+    pattern: "(?i)diagnose|prescribe yourself|change patient"
+    action: FLAG
+    metadata:
+      detected_intent: "external content attempting to modify clinical decision"
+
+  - name: log_all_metadata
+    pattern: ".*"
+    action: LOG
