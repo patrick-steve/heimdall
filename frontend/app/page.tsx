@@ -8,6 +8,7 @@ import { LobsterTrap } from "@/components/landing/LobsterTrap";
 import { Nav } from "@/components/landing/Nav";
 import { PlainEnglish } from "@/components/landing/PlainEnglish";
 import { Problem } from "@/components/landing/Problem";
+import { Roadmap } from "@/components/landing/Roadmap";
 import { Verticals } from "@/components/landing/Verticals";
 
 export default function Landing() {
@@ -23,6 +24,7 @@ export default function Landing() {
       <LobsterTrap />
       <Install />
       <Limitations />
+      <Roadmap />
       <Close />
     </main>
   );
