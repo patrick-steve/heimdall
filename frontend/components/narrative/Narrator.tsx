@@ -49,7 +49,7 @@ export function Narrator({ events, chainId, script, agents }: Props) {
         out.push({ kind: "hop", text });
       } else if (e.type === "external_content_flagged" && script.external) {
         out.push({ kind: "ext", text: script.external });
-      } else if (e.type === "scenario_blocked") {
+      } else if (e.type === "scenario_blocked" && !blocked) {
         blocked = true;
         if (script.blocked) out.push({ kind: "blocked", text: script.blocked });
       } else if (e.type === "rule_evaluation" && e.result === "DENY" && e.layer === "protocol" && !blocked) {

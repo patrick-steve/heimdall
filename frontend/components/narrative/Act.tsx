@@ -243,21 +243,37 @@ interface ChainSummary {
 function useChainSummary(events: WsEvent[], chainId: string | null): ChainSummary {
   const s: ChainSummary = { hopCount: 0, allow: 0, flag: 0, deny: 0, totalRules: 0, hits: [] };
   if (!chainId) return s;
+
+  // Dedupe rule evaluations by (rule_name, layer) per chain. Layer 2 rules
+  // re-fire after every hop + the counterfactual sweep; the badge should
+  // count distinct rules and their worst verdict, not raw emissions.
+  const SEVERITY: Record<string, number> = { ALLOW: 0, FLAG: 1, DENY: 2 };
+  const verdictByRule = new Map<string, RuleEvaluationEvent>();
+
   for (const e of events) {
-    if (e.type === "delegation" && e.chain_id === chainId) s.hopCount++;
-    else if (e.type === "rule_evaluation") {
+    if (e.type === "delegation" && e.chain_id === chainId) {
+      s.hopCount++;
+    } else if (e.type === "rule_evaluation") {
       const r = e as RuleEvaluationEvent;
       if (r.chain_id !== chainId) continue;
-      s.totalRules++;
-      if (r.result === "ALLOW") s.allow++;
-      else if (r.result === "FLAG") { s.flag++; s.hits.push({ rule: r.rule_name, result: "FLAG", layer: r.layer }); }
-      else if (r.result === "DENY") { s.deny++; s.hits.push({ rule: r.rule_name, result: "DENY", layer: r.layer }); }
+      const key = `${r.rule_name}::${r.layer}`;
+      const prev = verdictByRule.get(key);
+      if (!prev || SEVERITY[r.result] >= SEVERITY[prev.result]) {
+        verdictByRule.set(key, r);
+      }
     } else if (e.type === "tool_invoked") {
       const t = e as ToolInvokedEvent;
       if (t.chain_id !== chainId) continue;
       const res = t.result as { etherscan_url?: string };
       if (res?.etherscan_url) s.txUrl = res.etherscan_url;
     }
+  }
+
+  for (const r of verdictByRule.values()) {
+    s.totalRules++;
+    if (r.result === "ALLOW") s.allow++;
+    else if (r.result === "FLAG") { s.flag++; s.hits.push({ rule: r.rule_name, result: "FLAG", layer: r.layer }); }
+    else if (r.result === "DENY") { s.deny++; s.hits.push({ rule: r.rule_name, result: "DENY", layer: r.layer }); }
   }
   return s;
 }

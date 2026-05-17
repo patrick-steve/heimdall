@@ -370,8 +370,11 @@ function buildScene(
     } else if (e.type === "rule_evaluation") {
       const r = e as RuleEvaluationEvent;
       if (filterChainId && r.chain_id !== filterChainId) continue;
-      if (r.result === "DENY" && r.layer === "protocol" && r.matched_segment && r.matched_segment.includes("->")) {
-        const [from, to] = r.matched_segment.split("->");
+      // matched_segment for Layer 1 deny is "caller->callee". Older DB rows
+      // (pre-fix) used the unicode arrow "→"; normalise both to ASCII.
+      const seg = (r.matched_segment ?? "").replace(/→/g, "->");
+      if (r.result === "DENY" && r.layer === "protocol" && seg.includes("->")) {
+        const [from, to] = seg.split("->");
         denyEdge = { fromId: from, toId: to, rule: r.rule_name, reason: r.reason, layer: r.layer };
         verdict = "DENY";
         ruleByEdge.set(`${from}->${to}`, { status: "deny" });

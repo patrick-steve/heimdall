@@ -13,14 +13,31 @@ export function RuleSidebar({ events, filterChainId }: Props) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const cards = useMemo(() => {
-    const out: RuleEvaluationEvent[] = [];
+    // Dedupe by (chain_id, rule_name, layer). A Layer 2 rule re-fires after
+    // every signed hop and once more in the counterfactual block, so the same
+    // rule shows up many times for one chain — we want the *current* verdict,
+    // not every intermediate one. Severity wins ties: DENY > FLAG > ALLOW;
+    // within the same severity the latest event wins.
+    const SEVERITY: Record<string, number> = { ALLOW: 0, FLAG: 1, DENY: 2 };
+    const byKey = new Map<string, RuleEvaluationEvent>();
     for (const e of events) {
-      if (e.type === "rule_evaluation") {
-        if (filterChainId && e.chain_id !== filterChainId) continue;
-        out.push(e as RuleEvaluationEvent);
+      if (e.type !== "rule_evaluation") continue;
+      const r = e as RuleEvaluationEvent;
+      if (filterChainId && r.chain_id !== filterChainId) continue;
+      const key = `${r.chain_id}::${r.rule_name}::${r.layer}`;
+      const prev = byKey.get(key);
+      if (!prev || SEVERITY[r.result] >= SEVERITY[prev.result]) {
+        byKey.set(key, r);
       }
     }
-    return out.slice(-40).reverse();   // newest on top, cap at 40
+    // Order: DENY → FLAG → ALLOW, then by rule name for stable layout.
+    return Array.from(byKey.values())
+      .sort((a, b) => {
+        const sd = SEVERITY[b.result] - SEVERITY[a.result];
+        if (sd !== 0) return sd;
+        return a.rule_name.localeCompare(b.rule_name);
+      })
+      .slice(0, 40);
   }, [events, filterChainId]);
 
   return (

@@ -161,7 +161,7 @@ async def delegate(
             layer="protocol",
             result="DENY",
             reason=str(e),
-            matched_segment=f"{from_agent}→{to_agent}",
+            matched_segment=f"{from_agent}->{to_agent}",
         )
         return _deny_payload(
             chain_id=chain_id,
@@ -207,7 +207,7 @@ async def delegate(
         layer="protocol",
         result="ALLOW",
         reason="scope ⊆ parent scope",
-        matched_segment=f"{from_agent}→{to_agent}",
+        matched_segment=f"{from_agent}->{to_agent}",
     )
     await _persist_evaluations(
         db, ws_manager, chain_id,

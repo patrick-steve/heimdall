@@ -152,7 +152,7 @@ async def delegate_raw(
             layer="protocol",
             result="DENY",
             reason=str(e),
-            matched_segment=f"{caller_id}→{callee_id}",
+            matched_segment=f"{caller_id}->{callee_id}",
         )
         if heimdall_on:
             raise HTTPException(status_code=403, detail={
@@ -200,7 +200,7 @@ async def delegate_raw(
         layer="protocol",
         result="ALLOW",
         reason=f"scope ⊆ parent scope",
-        matched_segment=f"{caller_id}→{callee_id}",
+        matched_segment=f"{caller_id}->{callee_id}",
     )
     await _persist_evaluations(
         db, ws_manager, chain_id,
