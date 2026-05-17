@@ -2,6 +2,7 @@ import { Architecture } from "@/components/landing/Architecture";
 import { Attestations } from "@/components/landing/Attestations";
 import { Close } from "@/components/landing/Close";
 import { Hero } from "@/components/landing/Hero";
+import { Install } from "@/components/landing/Install";
 import { Limitations } from "@/components/landing/Limitations";
 import { LobsterTrap } from "@/components/landing/LobsterTrap";
 import { Nav } from "@/components/landing/Nav";
@@ -20,6 +21,7 @@ export default function Landing() {
       <Architecture />
       <Verticals />
       <LobsterTrap />
+      <Install />
       <Limitations />
       <Close />
     </main>

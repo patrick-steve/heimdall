@@ -29,7 +29,7 @@ const LIMITS = [
 
 export function Limitations() {
   return (
-    <Section index="05" label="HONEST LIMITATIONS" id="limitations">
+    <Section index="06" label="HONEST LIMITATIONS" id="limitations">
       <div className="grid grid-cols-12 gap-8 mb-12">
         <div className="col-span-12 md:col-span-7">
           <h2 className="display text-3xl md:text-4xl font-semibold text-zinc-100 mb-6">

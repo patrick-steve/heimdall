@@ -34,12 +34,24 @@ export function Hero() {
               a job done. Nobody is watching what gets handed off along the way.{" "}
               <span className="text-bifrost">Heimdall is.</span>
             </p>
-            <p className="max-w-prose text-[15px] text-zinc-500 leading-relaxed mb-8">
+            <p className="max-w-prose text-[15px] text-zinc-500 leading-relaxed mb-6">
               Think of it as air traffic control for AI agents. Most tools point a camera at each
               agent. Heimdall watches what passes between them — and makes one class of attack{" "}
               <span className="text-zinc-200">impossible to even attempt</span>, like a locked door
               rather than a guard who has to recognise the intruder. Everything else runs against
               rules you write in plain YAML. Built on Veea Lobster Trap.
+            </p>
+            <p className="max-w-prose text-[15px] text-zinc-400 leading-relaxed mb-8">
+              <span className="text-zinc-200">Two minutes to install, five to integrate.</span>{" "}
+              <span className="text-zinc-500">
+                One <span className="font-mono text-[13px] text-zinc-300">docker compose up</span>{" "}
+                brings the gateway and dashboard live; one{" "}
+                <span className="font-mono text-[13px] text-zinc-300">pip install heimdall-sdk</span>
+                {" "}(or{" "}
+                <span className="font-mono text-[13px] text-zinc-300">npm i @heimdall/sdk</span>) and
+                a single <span className="font-mono text-[13px] text-zinc-300">hd.delegate(...)</span>{" "}
+                call gates every hop. MIT-licensed; self-host or run on your own infra.
+              </span>
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
@@ -51,6 +63,13 @@ export function Hero() {
                   <path d="M1 5h12M9 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
+              <a
+                href="#install"
+                className="group inline-flex items-center gap-3 border border-bifrost/50 hover:border-bifrost text-bifrost font-mono text-[12px] uppercase tracking-wider px-5 py-3 transition"
+              >
+                Install in 2 minutes
+                <span className="text-bifrost/60 group-hover:text-bifrost transition-colors">↓</span>
+              </a>
               <a
                 href="#architecture"
                 className="font-mono text-[12px] uppercase tracking-wider border border-edge hover:border-edgeHi text-zinc-300 px-5 py-3 transition"

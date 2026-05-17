@@ -17,6 +17,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from backend.auth import AuthMiddleware, ensure_demo_org
 from backend.config import settings
@@ -110,6 +113,40 @@ def _resolve_cors_origins() -> tuple[list[str], str | None]:
 
 _origins, _origin_regex = _resolve_cors_origins()
 
+
+class V1CorsMiddleware(BaseHTTPMiddleware):
+    """Permissive CORS for /api/v1/* only.
+
+    The v1 API is meant to be called from arbitrary external services, so its
+    responses get `Access-Control-Allow-Origin: *`. The legacy `/api/*` routes
+    keep the credentialed allow-list set on `CORSMiddleware` below. Browsers
+    forbid `Allow-Origin: *` with `Allow-Credentials: true`, so v1 callers
+    must not send cookies — they authenticate via the Bearer header instead.
+    """
+
+    async def dispatch(
+        self,
+        request: Request,
+        call_next,
+    ) -> Response:
+        if not request.url.path.startswith("/api/v1/"):
+            return await call_next(request)
+
+        if request.method == "OPTIONS":
+            response = Response(status_code=204)
+        else:
+            response = await call_next(request)
+
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = (
+            request.headers.get("access-control-request-headers")
+            or "Authorization, Content-Type"
+        )
+        response.headers["Access-Control-Max-Age"] = "600"
+        return response
+
+
 app = FastAPI(title="Heimdall — Agent Governance Layer", lifespan=lifespan)
 
 app.add_middleware(
@@ -120,6 +157,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*", "X-Heimdall-Session", "x-heimdall-session"],
 )
+# v1 cross-origin support — wildcard, no credentials. Sits inside the
+# credentialed CORS middleware so that preflight requests to /api/v1/* see
+# permissive headers while the dashboard's /api/* keeps the allow-list.
+app.add_middleware(V1CorsMiddleware)
 # IMPORTANT: SessionMiddleware must be added AFTER CORS so it sits
 # closer to the route handlers. add_middleware prepends, so the
 # request travels through CORS first, then session binding.
