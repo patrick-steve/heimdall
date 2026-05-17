@@ -1,0 +1,53 @@
+{
+  "name": "@heimdall/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Heimdall — runtime governance for AI agent delegation chains.",
+  "license": "MIT",
+  "homepage": "https://github.com/patrick-steve/heimdall",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patrick-steve/heimdall.git",
+    "directory": "sdks/typescript"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "governance",
+    "authorization",
+    "delegation",
+    "security",
+    "heimdall"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "typecheck": "tsc --noEmit",
+    "example:basic": "tsx examples/01_basic_delegation.ts",
+    "example:attack": "tsx examples/02_attack_blocked.ts",
+    "example:audit": "tsx examples/03_chain_audit.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
