@@ -15,6 +15,7 @@ import yaml
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from backend.auth import current_org_id
 from backend.config import settings
 from backend.db import Agent, get_db, utcnow
 from backend.policy_loader import (
@@ -35,7 +36,7 @@ def _agents_yaml_for(vertical: str) -> list[dict[str, Any]]:
     return list(data.get("agents", []))
 
 
-def _upsert(db: Session, vertical: str, specs: list[dict[str, Any]]) -> int:
+def _upsert(db: Session, vertical: str, specs: list[dict[str, Any]], org_id: str = "demo") -> int:
     count = 0
     for spec in specs:
         registered_days_ago = int(spec.get("registered_days_ago", 0))
@@ -52,6 +53,7 @@ def _upsert(db: Session, vertical: str, specs: list[dict[str, Any]]) -> int:
             existing.role = spec["role"]
             existing.registered_at = registered_at
             existing.is_dormant = is_dormant
+            existing.org_id = org_id
         else:
             db.add(Agent(
                 id=spec["id"],
@@ -64,6 +66,7 @@ def _upsert(db: Session, vertical: str, specs: list[dict[str, Any]]) -> int:
                 registered_at=registered_at,
                 last_active_at=registered_at,
                 is_dormant=is_dormant,
+                org_id=org_id,
             ))
         count += 1
     db.commit()
@@ -84,7 +87,7 @@ async def sync_agents(request: Request, db: Session = Depends(get_db)) -> dict[s
     vertical = get_active_vertical()
     yaml_agents = get_active_agents()
     ws_manager = request.app.state.ws_manager
-    count = _upsert(db, vertical, yaml_agents)
+    count = _upsert(db, vertical, yaml_agents, org_id=current_org_id())
     await ws_manager.broadcast({"type": "agents_synced", "vertical": vertical, "count": count})
     return {
         "vertical": vertical,

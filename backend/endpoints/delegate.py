@@ -19,6 +19,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from backend.auth import current_org_id
 from backend.db import ChainCredential, RuleEvaluation, get_db, utcnow
 from backend.jwt_chain import (
     AttenuationViolation,
@@ -49,6 +50,7 @@ def _persist_cred(db: Session, cred: dict[str, Any]) -> ChainCredential:
         chain_id=cred["chain_id"],
         issued_at=utcnow(),
         session_id=current_session_id(),
+        org_id=current_org_id(),
     )
     db.add(row)
     db.commit()
@@ -75,6 +77,7 @@ async def _persist_evaluations(
         reason=reason,
         matched_segment=matched_segment,
         session_id=current_session_id(),
+        org_id=current_org_id(),
     ))
     db.commit()
     await ws_manager.broadcast({

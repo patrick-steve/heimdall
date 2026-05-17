@@ -18,9 +18,10 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from backend.auth import AuthMiddleware, ensure_demo_org
 from backend.config import settings
 from backend.db import AgentBehaviorBaseline, SessionLocal, init_db
-from backend.endpoints import audit, delegate, register, replay, toggle, vertical
+from backend.endpoints import audit, delegate, register, replay, toggle, v1, vertical
 from backend.endpoints.delegate import _persist_evaluations  # re-export not exposed
 from backend.endpoints.register import sync_all_verticals
 from backend.policy_loader import AVAILABLE_VERTICALS
@@ -60,6 +61,10 @@ def _seed_baselines_if_empty(db: Session) -> int:
 async def lifespan(app: FastAPI):
     init_db()
 
+    # Provision the Demo org + its API key before anything else touches the
+    # DB. Idempotent: only mints a key if none exist.
+    _, fresh_demo_key = ensure_demo_org()
+
     # Sync every vertical's agents.yaml into the DB at startup. Each
     # session reads only the agents matching its active vertical at
     # runtime (filtered in /api/agents).
@@ -77,6 +82,13 @@ async def lifespan(app: FastAPI):
     logger.info("  Agents:      %s", per_vertical)
     if seeded:
         logger.info("  Baselines:   seeded %d behavioral observations", seeded)
+    if fresh_demo_key:
+        banner = "=" * 66
+        logger.info(banner)
+        logger.info("DEMO API KEY (save this — shown once):")
+        logger.info("  %s", fresh_demo_key)
+        logger.info("Use it: curl -H 'Authorization: Bearer %s' ...", fresh_demo_key)
+        logger.info(banner)
 
     yield
 
@@ -112,6 +124,10 @@ app.add_middleware(
 # closer to the route handlers. add_middleware prepends, so the
 # request travels through CORS first, then session binding.
 app.add_middleware(SessionMiddleware)
+# AuthMiddleware resolves Authorization: Bearer hd_xxx → org_id ContextVar.
+# Added after Session so it runs adjacent to it; both ContextVars are
+# bound before any route handler sees the request.
+app.add_middleware(AuthMiddleware)
 
 app.state.ws_manager = ws_manager
 
@@ -122,6 +138,9 @@ app.include_router(vertical.router, prefix="/api", tags=["vertical"])
 app.include_router(replay.router, prefix="/api", tags=["replay"])
 app.include_router(toggle.router, prefix="/api", tags=["toggle"])
 register_scenario_routes(app)
+
+# v1: the public, API-key-authenticated interface. See backend/endpoints/v1.py.
+app.include_router(v1.router, prefix="/api/v1", tags=["v1"])
 
 
 @app.get("/api/health")

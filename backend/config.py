@@ -32,6 +32,7 @@ class Settings:
     SEPOLIA_RPC_URL: str
     SEPOLIA_PRIVATE_KEY: str
     SEPOLIA_TO_ADDRESS: str
+    HEIMDALL_DEMO_API_KEY: str
     REPO_ROOT: Path
 
     @property
@@ -54,5 +55,6 @@ settings = Settings(
     SEPOLIA_RPC_URL=os.environ.get("SEPOLIA_RPC_URL", "").strip(),
     SEPOLIA_PRIVATE_KEY=os.environ.get("SEPOLIA_PRIVATE_KEY", "").strip(),
     SEPOLIA_TO_ADDRESS=os.environ.get("SEPOLIA_TO_ADDRESS", "").strip(),
+    HEIMDALL_DEMO_API_KEY=os.environ.get("HEIMDALL_DEMO_API_KEY", "").strip(),
     REPO_ROOT=REPO_ROOT,
 )

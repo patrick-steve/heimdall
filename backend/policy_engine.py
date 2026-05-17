@@ -396,6 +396,7 @@ def evaluate_policies(
         r.rule_name = name
         results.append(r)
 
+        from backend.auth import current_org_id
         from backend.session import current_session_id
         db.add(RuleEvaluation(
             chain_id=chain[0].chain_id if chain else "unknown",
@@ -406,6 +407,7 @@ def evaluate_policies(
             reason=r.reason,
             matched_segment=str(r.matched_segment) if r.matched_segment is not None else None,
             session_id=current_session_id(),
+            org_id=current_org_id(),
         ))
 
     db.commit()

@@ -14,6 +14,7 @@ from fastapi.responses import Response, StreamingResponse
 from sqlalchemy.orm import Session
 
 from backend.audit import generate_incident_report_md
+from backend.auth import current_org_id
 from backend.db import ChainCredential, Incident, RuleEvaluation, get_db
 from backend.policy_loader import get_active_vertical
 from backend.session import current_session_id
@@ -93,6 +94,7 @@ async def create_report(
             summary=violations.split("\n")[0][:200],
             full_report=full,
             session_id=current_session_id(),
+            org_id=current_org_id(),
         ))
         db.commit()
         await ws_manager.broadcast({
