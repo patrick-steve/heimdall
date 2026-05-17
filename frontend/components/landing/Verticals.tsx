@@ -69,10 +69,10 @@ export function Verticals() {
         </div>
         <div className="col-span-12 md:col-span-6 md:pt-3">
           <p className="text-zinc-400 leading-relaxed max-w-prose">
-            Heimdall is horizontal because the engine is generic. Agents, prompts, tools, and policy are
-            vertical YAML; the protocol enforcement and the policy primitives are not. The DeFi vertical is
-            built end-to-end; healthcare proves the same architecture re-skins cleanly; customer service is
-            the integrator's empty template.
+            The same governance engine works in any industry. Each one just supplies its own
+            YAML — its agents, its tools, its rules. We&rsquo;ve built three: DeFi end-to-end,
+            healthcare as a working sketch, and customer service as rules-only — to prove you can
+            govern your agents without writing any code.
           </p>
         </div>
       </div>

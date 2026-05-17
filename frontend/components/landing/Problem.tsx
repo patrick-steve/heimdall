@@ -67,17 +67,19 @@ export function Problem() {
     <Section index="01" label="PROBLEM" id="problem">
       <Reveal as="div" className="mb-12 md:mb-16 max-w-prose">
         <h2 className="display text-3xl md:text-4xl font-semibold text-zinc-100 mb-5">
-          The problem is not the agents.{" "}
-          <span className="text-zinc-500">It is the chain of authority connecting a chat prompt to a wallet signature.</span>
+          Agents aren&rsquo;t the problem.{" "}
+          <span className="text-zinc-500">The handoffs between them are.</span>
         </h2>
         <p className="text-zinc-400 leading-relaxed">
-          Organisations are running agents at scale and losing track. Across surveys read through
-          Q1 2026, the pattern repeats: nobody knows what authority each agent has, where that
-          authority came from, or whether a five-hop chain still resembles the original request.
+          Companies are deploying agents faster than they can govern them. Across 2026 surveys the
+          pattern is consistent: nobody knows what each agent is allowed to do, where that
+          permission came from, or whether a five-step chain still resembles the original user
+          request.
         </p>
         <p className="mt-4 text-zinc-400 leading-relaxed">
-          The attacker is rarely subverting the model. The attacker is exploiting the gaps between
-          identities, systems, and credentials that should have expired three months ago and never did.
+          The attacker is rarely tricking the AI model itself. They&rsquo;re exploiting the gaps
+          between identities, systems, and permissions that should have expired three months ago
+          and never did.
         </p>
       </Reveal>
 

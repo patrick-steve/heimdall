@@ -48,7 +48,7 @@ services:
     region: oregon
     branch: main
     rootDir: lobstertrap_service
-    dockerfilePath: lobstertrap_service/Dockerfile
+    dockerfilePath: Dockerfile
     healthCheckPath: /
     envVars:
       # Google's OpenAI-compatible Gemini endpoint. Lobster Trap forwards

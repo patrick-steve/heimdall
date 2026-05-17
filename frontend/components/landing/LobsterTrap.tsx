@@ -27,19 +27,19 @@ export function LobsterTrap() {
         <Reveal as="article" className="p-6">
           <div className="eyebrow text-bifrost mb-3">§ what it is</div>
           <h3 className="font-display text-xl font-semibold text-zinc-100 mb-3 leading-snug">
-            A DPI proxy that sits between every agent and the LLM.
+            A safety layer that sits between every agent and the AI model behind it.
           </h3>
           <p className="text-[13.5px] text-zinc-400 leading-relaxed mb-4">
-            Lobster Trap is Veea&rsquo;s open-source proxy. Every prompt the agent sends to Gemini,
-            Claude, or any other model passes through it. It reads the prompt, reads the response,
-            applies YAML pattern rules, and attaches a metadata channel called{" "}
-            <span className="font-mono text-[12px] text-zinc-200">_lobstertrap</span> describing what
-            it saw.
+            Lobster Trap is Veea&rsquo;s open-source project. Every prompt an agent sends to
+            Gemini, Claude, or any other AI model passes through it. It reads the prompt, reads the
+            response, checks them against rules you write, and tags every reply with notes on what
+            it saw (a channel called{" "}
+            <span className="font-mono text-[12px] text-zinc-200">_lobstertrap</span>).
           </p>
           <p className="text-[12.5px] text-zinc-500 leading-relaxed">
-            It is, in security terms, an{" "}
-            <span className="text-zinc-300">application-layer firewall for prompts</span>. The
-            equivalent of WAF for web apps, except for LLM traffic.
+            In security terms it&rsquo;s a{" "}
+            <span className="text-zinc-300">firewall for AI prompts</span> — the equivalent of a WAF
+            for websites, but for AI traffic.
           </p>
         </Reveal>
 

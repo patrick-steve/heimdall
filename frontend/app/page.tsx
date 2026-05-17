@@ -5,6 +5,7 @@ import { Hero } from "@/components/landing/Hero";
 import { Limitations } from "@/components/landing/Limitations";
 import { LobsterTrap } from "@/components/landing/LobsterTrap";
 import { Nav } from "@/components/landing/Nav";
+import { PlainEnglish } from "@/components/landing/PlainEnglish";
 import { Problem } from "@/components/landing/Problem";
 import { Verticals } from "@/components/landing/Verticals";
 
@@ -13,6 +14,7 @@ export default function Landing() {
     <main className="bg-ink text-zinc-200">
       <Nav />
       <Hero />
+      <PlainEnglish />
       <Attestations />
       <Problem />
       <Architecture />

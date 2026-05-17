@@ -30,16 +30,16 @@ export function Hero() {
               Nothing crosses<br className="hidden md:inline" /> without being seen.
             </h1>
             <p className="max-w-prose text-lg md:text-xl text-zinc-300 leading-snug mb-4">
-              AI agents now sign transactions and write to patient records on their own. When they
-              call each other, nobody is watching the chain of authority.{" "}
+              AI agents now move money, update health records, and pass work to other agents to get
+              a job done. Nobody is watching what gets handed off along the way.{" "}
               <span className="text-bifrost">Heimdall is.</span>
             </p>
             <p className="max-w-prose text-[15px] text-zinc-500 leading-relaxed mb-8">
-              Most security tools either trust agents or scan them for known bad patterns. Heimdall
-              does neither. It makes a whole class of attacks{" "}
+              Think of it as air traffic control for AI agents. Most tools point a camera at each
+              agent. Heimdall watches what passes between them — and makes one class of attack{" "}
               <span className="text-zinc-200">impossible to even attempt</span>, like a locked door
-              rather than a guard who has to recognise the intruder. Then it watches behaviour for
-              everything else. Built on Veea Lobster Trap.
+              rather than a guard who has to recognise the intruder. Everything else runs against
+              rules you write in plain YAML. Built on Veea Lobster Trap.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link

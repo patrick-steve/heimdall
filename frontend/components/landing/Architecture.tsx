@@ -37,14 +37,15 @@ export function Architecture() {
           </h2>
           <div className="space-y-5 text-zinc-400 leading-relaxed max-w-prose">
             <p>
-              Heimdall enforces in two layers, and the distinction is the heart of the pitch.
-              The protocol layer makes some attacks <em className="not-italic text-bifrost">mathematically unrepresentable</em>: an
-              agent cannot pass forward authority it does not have, because the credential will not sign.
-              The policy layer evaluates everything that does sign against rules expressed as YAML.
+              Heimdall enforces in two layers. <span className="text-zinc-200">Layer 1</span> makes
+              one class of attack impossible: an agent literally cannot hand off authority it
+              doesn&rsquo;t have, because the handoff token will not sign.{" "}
+              <span className="text-zinc-200">Layer 2</span> runs everything that does pass against
+              rules you write in plain YAML — HIPAA, SOC 2, EU AI Act, or your own.
             </p>
             <p>
-              Layer 1 is the architecture. Layer 2 is the configurability. Neither one is the full story
-              alone; together they cover the attack surface that single-layer tools miss.
+              Layer 1 is the architecture. Layer 2 is the configurability. Neither tells the full
+              story alone; together they cover the attack surface that single-layer tools miss.
             </p>
           </div>
         </Reveal>
