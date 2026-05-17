@@ -1,0 +1,35 @@
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Local runtime state — never ship into the image.
+heimdall.db
+heimdall.db-journal
+audit_logs/
+
+# Node
+**/node_modules/
+**/.next/
+**/out/
+**/dist/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets
+.env
+.env.*
+!.env.example
+GEMINI_KEY.txt
+
+# VCS
+.git/
+.gitignore
+
+# Docs / planning that don't belong in the runtime image.
+*.md
+!README.md

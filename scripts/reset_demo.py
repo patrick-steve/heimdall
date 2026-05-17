@@ -16,7 +16,8 @@ from scripts.seed_db import main as seed_main  # noqa: E402
 
 
 def main() -> None:
-    db_path = ROOT / "heimdall.db"
+    import os
+    db_path = Path(os.environ.get("HEIMDALL_DB_PATH") or (ROOT / "heimdall.db"))
     if db_path.exists():
         db_path.unlink()
         print(f"[reset] deleted {db_path}")

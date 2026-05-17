@@ -1,0 +1,65 @@
+# Local Heimdall stack.
+#
+#   cp .env.example .env
+#   docker compose up                    # backend + frontend
+#   docker compose --profile dpi up      # adds the Lobster Trap DPI proxy
+#
+# First boot mints a demo API key and prints it in the backend logs between
+# two === banners. Pin a stable key by setting HEIMDALL_DEMO_API_KEY in .env
+# BEFORE the first boot (the seeder is idempotent on subsequent runs).
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      HEIMDALL_SECRET: ${HEIMDALL_SECRET:-dev-secret-do-not-use-in-prod-32bytes-hex}
+      HEIMDALL_DEMO_API_KEY: ${HEIMDALL_DEMO_API_KEY:-}
+      HEIMDALL_ALLOWED_ORIGINS: ${HEIMDALL_ALLOWED_ORIGINS:-http://localhost:3000}
+      HEIMDALL_DB_PATH: /app/data/heimdall.db
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LOBSTER_TRAP_URL: ${LOBSTER_TRAP_URL:-}
+      SEPOLIA_RPC_URL: ${SEPOLIA_RPC_URL:-}
+      SEPOLIA_PRIVATE_KEY: ${SEPOLIA_PRIVATE_KEY:-}
+      SEPOLIA_TO_ADDRESS: ${SEPOLIA_TO_ADDRESS:-}
+    volumes:
+      - heimdall-data:/app/data
+      # Hot-reload vertical configs and policy YAML without rebuilding the image.
+      - ./verticals:/app/verticals
+      - ./policies:/app/policies
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # Optional Veea Lobster Trap DPI proxy. Bring it up with:
+  #   docker compose --profile dpi up
+  lobstertrap:
+    profiles: ["dpi"]
+    build:
+      context: ./lobstertrap_service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      LT_BACKEND: ${LT_BACKEND:-https://generativelanguage.googleapis.com/v1beta/openai}
+
+volumes:
+  heimdall-data:

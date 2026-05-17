@@ -9,7 +9,9 @@ Tables:
 """
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 from sqlalchemy import Column, String, Integer, DateTime, Text, Boolean, JSON, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -22,7 +24,12 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-DATABASE_URL = f"sqlite:///{settings.REPO_ROOT / 'heimdall.db'}"
+# Honour HEIMDALL_DB_PATH so a container can mount a volume at /app/data
+# without writing into the image's read-only layer. Locally it falls back
+# to repo-root/heimdall.db, matching the dev workflow.
+DB_PATH = os.environ.get("HEIMDALL_DB_PATH") or str(settings.REPO_ROOT / "heimdall.db")
+Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
