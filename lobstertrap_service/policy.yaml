@@ -1,0 +1,85 @@
+# Heimdall-tuned Lobster Trap policy.
+#
+# Real Lobster Trap schema — version 1.0, P4-style match-action tables.
+# This policy is intentionally generic (works across DeFi, Healthcare, and
+# any future verticals). Vertical-specific logic lives in Heimdall's
+# Layer 02 policy engine, which reads the metadata Lobster Trap returns.
+#
+# All ingress rules are LOG so Lobster Trap does not block requests on
+# its own — Heimdall is responsible for the final ALLOW/DENY decision.
+# The value Lobster Trap adds is the _lobstertrap.ingress.mismatches
+# array on the response, which Heimdall reads to fire intent_mismatch.
+
+version: "1.0"
+policy_name: "heimdall"
+
+default_action: ALLOW
+
+ingress_rules:
+  # Detect prompt-injection patterns so Heimdall's intent_mismatch can
+  # surface them as a critical mismatch.
+  - name: detect_prompt_injection
+    description: "External content with embedded injection patterns"
+    priority: 100
+    action: LOG
+    conditions:
+      - field: contains_injection_patterns
+        match_type: boolean
+        value: true
+
+  - name: detect_role_impersonation
+    description: "Attempts to assign a privileged role identity"
+    priority: 95
+    action: LOG
+    conditions:
+      - field: contains_role_impersonation
+        match_type: boolean
+        value: true
+
+  - name: detect_exfiltration
+    description: "Patterns suggesting data exfiltration"
+    priority: 92
+    action: LOG
+    conditions:
+      - field: contains_exfiltration
+        match_type: boolean
+        value: true
+
+  - name: detect_credential_access
+    description: "Prompt category looks like credential_access"
+    priority: 88
+    action: LOG
+    conditions:
+      - field: intent_category
+        match_type: exact
+        value: credential_access
+
+  - name: detect_high_risk_score
+    description: "Composite risk score crosses threshold"
+    priority: 85
+    action: LOG
+    conditions:
+      - field: risk_score
+        match_type: threshold
+        value: 0.6
+
+egress_rules:
+  # Stop the model from echoing back credentials it was tricked into
+  # producing. Egress is a second checkpoint after Heimdall's policy.
+  - name: scrub_credentials_egress
+    description: "Model output contains credentials"
+    priority: 90
+    action: LOG
+    conditions:
+      - field: contains_credentials
+        match_type: boolean
+        value: true
+
+  - name: scrub_system_commands_egress
+    description: "Model output contains system commands"
+    priority: 85
+    action: LOG
+    conditions:
+      - field: contains_system_commands
+        match_type: boolean
+        value: true

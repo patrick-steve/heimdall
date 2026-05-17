@@ -166,7 +166,6 @@ export default function Dashboard() {
             registryNonce={registryNonce}
             chainsNonce={chainsNonce}
             activeChainId={activeChainId}
-            health={health}
             onReplayStart={setActiveChainId}
           />
         </aside>

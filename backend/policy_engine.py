@@ -191,36 +191,93 @@ def evaluate_value_threshold(chain: list[ChainCredential], config: dict) -> Eval
 # ---------------------------------------------------------------------------
 
 def evaluate_intent_mismatch(chain: list[ChainCredential], config: dict) -> EvalResult:
+    """Fire when Lobster Trap's DPI surfaces a high-risk discrepancy between
+    what an agent declared it would do and what its prompt actually does.
+
+    The credential's `detected_intent` field can arrive in three shapes:
+
+      1. A short category string from Lobster Trap (`credential_access`,
+         `system`, `data_access`, …) — the canonical real-proxy shape.
+      2. A JSON blob `{"category": "...", "severity": "critical|warning"}`
+         — emitted when the proxy wants to override severity directly.
+      3. Raw prompt content (the scenario's poisoned payload before
+         classification). For back-compat we still pattern-match injection
+         signatures on this so the rule fires correctly during the
+         dashboard demo.
+
+    Decision:
+      - high-risk category OR severity=critical OR explicit injection pattern → FLAG/DENY
+      - other category that differs from declared → FLAG
+      - everything else → ALLOW
+    """
     if not chain:
         return EvalResult("intent_mismatch", "intent_mismatch", "policy", ALLOW, "empty chain")
     cred = chain[-1]
     declared = (cred.declared_intent or "").strip().lower()
-    detected = (cred.detected_intent or "").strip().lower()
-    if not declared or not detected:
+    detected_raw = (cred.detected_intent or "").strip()
+    if not declared or not detected_raw:
         return EvalResult(
             "intent_mismatch", "intent_mismatch", "policy", ALLOW,
             "no detected intent recorded for this hop",
         )
 
-    declared_words = set(declared.split())
-    detected_words = set(detected.split())
-    overlap = (
-        len(declared_words & detected_words) / max(len(declared_words | detected_words), 1)
-    )
-    threshold = float(config.get("threshold_similarity", 0.5))
-    on_violation = (config.get("on_violation") or "DENY").upper()
+    detected_category = detected_raw.lower()
+    severity: str | None = None
 
-    if overlap < threshold:
+    # Shape 2: structured JSON
+    if detected_raw.startswith("{"):
+        import json
+        try:
+            obj = json.loads(detected_raw)
+            detected_category = str(obj.get("category", "")).lower()
+            sev = obj.get("severity")
+            if sev:
+                severity = str(sev).lower()
+        except json.JSONDecodeError:
+            pass
+
+    # Shape 3: raw prompt content. Look for known injection signatures.
+    if len(detected_raw) > 30 or " " in detected_raw:
+        if re.search(r"INJECTED PROMPT|invoke\s+\S+\s+with\s+\S+\s+scope|execute:trade|write:patient_record|diagnose\s+patient", detected_raw, re.IGNORECASE):
+            detected_category = "credential_access"
+            severity = "critical"
+        else:
+            # Fall back to a quick word overlap so unstructured detected
+            # text still gets a sensible verdict.
+            declared_words = set(declared.split())
+            detected_words = set(detected_raw.lower().split())
+            overlap = (
+                len(declared_words & detected_words) / max(len(declared_words | detected_words), 1)
+            )
+            if overlap >= 0.3:
+                return EvalResult(
+                    "intent_mismatch", "intent_mismatch", "policy", ALLOW,
+                    f"declared/detected overlap {overlap:.2f} ≥ 0.30",
+                )
+            detected_category = "(unstructured)"
+
+    high_risk = {"credential_access", "system", "network"}
+    benign = {"general", "communication", "data_access", ""}
+    on_violation = (config.get("on_violation") or "FLAG").upper()
+
+    if severity == "critical" or detected_category in high_risk:
         return EvalResult(
             "intent_mismatch", "intent_mismatch", "policy",
             DENY if on_violation == "DENY" else FLAG,
-            f"declared '{cred.declared_intent}' diverges from detected '{cred.detected_intent}' "
-            f"(jaccard={overlap:.2f} < {threshold:.2f})",
-            matched_segment=f"declared={cred.declared_intent}; detected={cred.detected_intent}",
+            f"Lobster Trap detected '{detected_category}' content; agent declared "
+            f"'{cred.declared_intent}'. High-risk intent mismatch.",
+            matched_segment=f"declared={cred.declared_intent}; detected={detected_category}",
+        )
+    if detected_category not in benign and detected_category != declared:
+        return EvalResult(
+            "intent_mismatch", "intent_mismatch", "policy", FLAG,
+            f"Lobster Trap detected '{detected_category}' content; agent declared "
+            f"'{cred.declared_intent}'.",
+            matched_segment=f"declared={cred.declared_intent}; detected={detected_category}",
         )
     return EvalResult(
         "intent_mismatch", "intent_mismatch", "policy", ALLOW,
-        f"declared/detected overlap {overlap:.2f} ≥ {threshold:.2f}",
+        f"declared '{cred.declared_intent}' aligns with detected '{detected_category}'",
     )
 
 

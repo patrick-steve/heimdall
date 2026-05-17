@@ -1,13 +1,19 @@
-# Render Blueprint for the Heimdall backend.
+# Render Blueprint for Heimdall.
+#
+# Two services:
+#   1. heimdall-backend (Python / FastAPI) — the governance layer + dashboard API
+#   2. heimdall-lobstertrap (Docker / Go) — the real Veea DPI proxy
 #
 # Click "New +" → "Blueprint" in the Render dashboard, connect this repo,
-# and Render will read this file. You only need to set GEMINI_API_KEY in
-# the dashboard once — everything else is wired up here.
+# and Render reads this file. You'll need to set GEMINI_API_KEY on both
+# services after the first sync — Lobster Trap forwards to Google's
+# OpenAI-compatible Gemini endpoint, so it also needs the key.
 #
-# Plan: free Web Service. 512 MB RAM, 0.1 vCPU, spins down after 15 min
-# idle, ~30-60s cold start. Acceptable for a demo, $0/month.
+# Plan: both free Web Services. 512 MB RAM, 0.1 vCPU, spin down after
+# 15 min idle, ~30-60s cold start. $0/month total.
 
 services:
+  # ── 1. Heimdall backend ──────────────────────────────────────────
   - type: web
     name: heimdall-backend
     runtime: python
@@ -22,10 +28,31 @@ services:
       - key: PYTHON_VERSION
         value: "3.12.3"
       - key: HEIMDALL_SECRET
-        generateValue: true        # one-shot random 32-byte hex
+        generateValue: true
       - key: GEMINI_API_KEY
         sync: false                # set manually in the Render dashboard
       - key: HEIMDALL_ALLOWED_ORIGINS
         sync: false                # set to your Vercel URL after first deploy
-      # Sepolia env vars stay unset → backend stays in mock mode.
-      # Lobster Trap URL stays unset → built-in mock proxy is active.
+      # Lobster Trap URL: set this to the public URL of the second service
+      # below once it deploys (e.g. https://heimdall-lobstertrap.onrender.com).
+      # When unset, the backend falls back to its built-in simulation.
+      - key: LOBSTER_TRAP_URL
+        sync: false
+      # Sepolia env vars deliberately unset → executor stays in mock mode.
+
+  # ── 2. Lobster Trap reverse proxy ────────────────────────────────
+  - type: web
+    name: heimdall-lobstertrap
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: lobstertrap_service
+    dockerfilePath: lobstertrap_service/Dockerfile
+    healthCheckPath: /
+    envVars:
+      # Google's OpenAI-compatible Gemini endpoint. Lobster Trap forwards
+      # every /v1/chat/completions call here, with the Authorization header
+      # from the agent (Heimdall) passed through unchanged.
+      - key: LT_BACKEND
+        value: "https://generativelanguage.googleapis.com/v1beta/openai"
