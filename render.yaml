@@ -49,7 +49,11 @@ services:
     branch: main
     rootDir: lobstertrap_service
     dockerfilePath: Dockerfile
-    healthCheckPath: /
+    # NO healthCheckPath. The proxy runs with --no-dashboard, so GET / is a
+    # 404 — Render's HTTP healthcheck on / will time out forever. Omitting
+    # the path makes Render fall back to a TCP open-port check, which is
+    # the right shape for a chat-completions proxy. Heimdall verifies real
+    # health by hitting /v1/chat/completions when it forwards a call.
     envVars:
       # Google's OpenAI-compatible Gemini endpoint. Lobster Trap forwards
       # every /v1/chat/completions call here, with the Authorization header
