@@ -1,298 +1,269 @@
-# Heimdall — Demo Guide
+# Heimdall — Product Demo
 
-> Five-minute live demo of the dashboard. Pair with the `/deck` slides for the
-> full pitch arc. Tight, scripted, recoverable.
+> A guided walkthrough of the working system. Pair with the slide deck for
+> the conceptual pitch; this doc shows what's actually running and what to
+> look for when you click around.
 
 ---
 
-## Before you start (5 minutes of prep, do it once)
+## In one paragraph
 
-### 1. Warm the stack
+Heimdall is a runtime governance layer for AI agent delegation chains. When
+agent A calls agent B, Heimdall signs a JWT carrying A's capabilities;
+when B calls C, the chain is cryptographically attenuated — there is no
+way for C to claim a capability that wasn't passed down. That's **Layer 1**.
+On top, six rule primitives in YAML — chain pattern, agent state, chain
+depth, value threshold, intent mismatch, behavioural drift — give
+operators a configurable **Layer 2** without bypassing the protocol guarantee.
+Built on Veea Lobster Trap, which inspects the model boundary while Heimdall
+covers the agent boundary.
 
-Render free tier spins down after 15 min idle. Wake both services before
-the demo window starts and keep them warm:
+---
+
+## Live URLs
+
+| What | Where |
+|------|-------|
+| **Landing page** | `https://heimdall-backend.onrender.com/` |
+| **Live dashboard** | `https://heimdall-backend.onrender.com/dashboard` |
+| **Slide deck** (printable) | `https://heimdall-backend.onrender.com/deck` |
+| **OpenAPI docs** | `https://heimdall-backend.onrender.com/docs` |
+| **Source** | `https://github.com/patrick-steve/heimdall` |
+| **Lobster Trap proxy** | `https://heimdall-lobstertrap.onrender.com/` (TCP-checked) |
+
+> Render free tier spins down after 15 min idle. First request may take 30-60s.
+
+---
+
+## What's actually built
+
+Be specific about what's deployed live vs. configured vs. roadmap:
+
+| Capability | State | Where to verify |
+|---|---|---|
+| Two-layer enforcement (protocol + policy) | **Live** | `backend/jwt_chain.py`, `backend/policy_engine.py` |
+| Six policy primitives in YAML | **Live** | `policies/examples/` — 12 example packs |
+| Python SDK (`heimdall-sdk`) | **Live** | `sdks/python/`, three runnable examples |
+| TypeScript SDK (`@heimdall/sdk`) | **Live** | `sdks/typescript/`, same surface as Python |
+| `/api/v1/*` versioned API | **Live** | OpenAPI at `/docs` |
+| Org + API key auth | **Live** | `backend/auth.py`, `heimdall keys create` CLI |
+| Real-time dashboard via WebSocket | **Live** | `/dashboard` after running any scenario |
+| Veea Lobster Trap proxy in the data path | **Live (Render)** | `lobster_trap_mocked: false` on `/api/health` |
+| Sepolia broadcast on the DeFi executor | **Mocked** by default | Set `SEPOLIA_*` env to wire a real wallet |
+| Gemini-powered incident reports | **Live** | Stream from `POST /api/audit/report/{chain_id}` |
+| HIPAA / SOC 2 / EU AI Act packs | **Configured, not certified** | `policies/examples/compliance_pack_*.yaml` |
+| Plain-English → YAML rule authoring | **Roadmap (v0.2)** | See landing's § ROADMAP section |
+| Dry-run replay against the ledger | **Roadmap (v0.2)** | Replay endpoint already exists; UI doesn't |
+| Traffic-mined rule suggestions | **Exploring** | `agent_behavior_baseline` already collects |
+
+---
+
+## The dashboard walkthrough
+
+The dashboard at `/dashboard` is a guided three-act narrative. Same six
+primitives across three verticals (DeFi, Healthcare, Customer Service);
+each act drives the chain ledger and renders the rules firing live.
+
+### Act 01 — Meet the cast
+
+What you see when you open the dashboard:
+
+- A header strip with the vertical selector (`DeFi · Healthcare · Customer Service`)
+  and a Heimdall ON/OFF toggle.
+- A row of agent cards. In DeFi: `coordinator`, `market_data`, `executor`,
+  and `shadow` — an idle agent set up months ago and forgotten.
+- A right-hand rail with four panels: rule cards (empty for now), agent
+  registry, replay mode, incident report.
+
+The agents carry different scopes (`read:portfolio`, `read:market_data`,
+`execute:trade`, etc.) — this matters for what the attack tries to forge.
+
+### Act 02 — A routine day
+
+Click `▷ Run routine`. Two hops draw on the chain canvas left-to-right.
+The rule sidebar fills with green cards. The "what happened" narrator on
+the right tells the story in plain English.
+
+What this proves: when the agents stay in their lane, the governance
+layer is invisible. Every rule fires ALLOW. Both layers — protocol and
+policy — agreed. **The point isn't that anything was blocked; it's that
+the ledger is now auditable.**
+
+### Act 03 — The attack (the headline)
+
+Click `▷ Run attack`. Three things unfold in sequence:
+
+1. **Hops 1 and 2 draw normally.** User → coordinator → market data. So
+   far so good.
+
+2. **The DPI evidence card appears under the canvas.** This is the
+   integration with Veea Lobster Trap:
+
+   - **Left column** — the declared intent: *"fetch market sentiment from
+     external feed"*
+   - **Right column** — what the DPI rules detected: *"external content
+     attempting to invoke an agent with elevated scope"*
+   - Plus the matched rule (`detect_external_injection`), the intent
+     category, the risk score, and a `LIVE` / `MOCK` badge depending on
+     whether `LOBSTER_TRAP_URL` is bound
+
+   This is the moment Lobster Trap earns its place in the architecture.
+   The agent thought it was fetching prices; the prompt it sent through
+   the proxy contained an injection payload.
+
+3. **A red deny burst lands on the chain canvas.** The compromised market
+   data agent tries to forge `execute:trade` scope and hand it to the
+   shadow account. **Heimdall's signing function refuses.** The rule
+   sidebar shows `capability_attenuation DENY` pinned to the top. The
+   credential is never minted. The executor never receives a JWT to act
+   on.
+
+   **There is no rule to bypass. The cryptography itself is what refuses.**
+   That's Layer 1.
+
+### The counterfactual — without Heimdall
+
+The Compare Act lets you run the same attack with the toggle flipped off.
+
+- Forged credential is signed because no one is checking
+- Executor receives it, broadcasts a Sepolia transfer (mocked by default,
+  real if `SEPOLIA_*` env is set)
+- Green tx URL chip appears on the canvas — `0xATTACKER · +$27,000,000`
+
+This is the entire reason the protocol layer is unrepresentable rather
+than configurable. A rule that can be turned off is a rule that *was*
+turned off.
+
+### The incident report
+
+Click any chain ID in the right rail → `Generate incident report`. Gemini
+streams a Markdown incident memo summarising what happened, which rules
+fired, and which compliance section the violation maps to. Compliance and
+security teams subscribe to these.
+
+---
+
+## Vertical switching
+
+The same dashboard runs three verticals from one engine:
+
+- **DeFi** — fully wired with executor tool bindings. The attack scene
+  signs (or mocks) a real Sepolia transfer.
+- **Healthcare** — fully wired with a mock EHR. The attack rewrites
+  patient 4421's chart from external lab content; the HIPAA pack catches
+  it.
+- **Customer Service** — policy YAML only. Agents and tools left for an
+  integrator to wire up. Shows that "no pack" still gracefully degrades.
+
+Switch verticals from the top selector. The chain canvas, rule sidebar,
+and narrator all rewire to the new pack with zero code changes.
+
+---
+
+## How to try it yourself (5 minutes)
 
 ```bash
-# In a terminal, kept open during the demo
-while true; do
-  curl -s -o /dev/null https://heimdall-backend.onrender.com/api/health
-  curl -s -o /dev/null https://heimdall-lobstertrap.onrender.com/
-  sleep 300
-done
-```
-
-Or if running locally:
-
-```bash
+git clone https://github.com/patrick-steve/heimdall
+cd heimdall
 cp .env.example .env
-# Pin a stable demo key so screenshots reproduce
-echo 'HEIMDALL_DEMO_API_KEY=hd_test_demo' >> .env
-docker compose up -d
+docker compose up
 ```
 
-### 2. Reset to a clean ledger
+Backend at `:8000`, dashboard at `:3000`. The demo API key prints in the
+backend logs between two `===` banner lines on first boot.
 
-```bash
-docker compose exec backend heimdall reset
-# or, locally:
-python -m scripts.reset_demo
+Then in another terminal, with `HEIMDALL_API_KEY` set to that key:
+
+```python
+from heimdall import Heimdall
+
+hd = Heimdall(api_key="hd_test_...", base_url="http://localhost:8000")
+
+result = hd.delegate(
+    from_agent="research_agent",
+    to_agent="payment_agent",
+    action="payment:send",
+    capabilities=["payment:send"],
+)
+if result.denied:
+    print("blocked at", result.layer, "by", result.rule, "—", result.reason)
 ```
 
-This wipes `heimdall.db` and re-seeds behavioural baselines so the
-`behavioral_drift` rule has historical data to flag against.
-
-### 3. Tabs in your browser, in order
-
-| Tab | URL                                       | When you switch |
-|-----|-------------------------------------------|------------------|
-| 1   | `/` (landing)                             | 0:00 — open frame |
-| 2   | `/dashboard`                              | 0:30 — main demo |
-| 3   | `/deck` (or the exported PDF)             | hold for Q&A |
-| 4   | A terminal with `docker compose logs -f backend` | only if something goes wrong |
-
-### 4. Set the dashboard to DeFi + Heimdall ON
-
-Open `/dashboard`. Top of the page:
-
-- **Vertical selector** → `DeFi` (it's the default; verify).
-- **Heimdall toggle** → `ON` (green dot).
-- The chain canvas should be empty with "press play".
-
-### 5. Pre-fly checks
-
-| Check                                                        | Expected |
-|--------------------------------------------------------------|----------|
-| `curl /api/health` returns `gemini_available: true`          | yes      |
-| `curl /api/health` returns `lobster_trap_mocked: false`      | yes (Render) |
-| Dashboard WebSocket shows `ws · connected` in the header     | yes      |
-| Cast section lists 4 agents (coordinator, market data, executor, shadow) | yes |
-
-If any of these are wrong, fix before talking — the audience will see it.
+Full quickstart: [`docs/QUICKSTART.md`](./QUICKSTART.md).
+API reference: [`docs/API.md`](./API.md).
+Policy authoring: [`docs/POLICIES.md`](./POLICIES.md).
+Integration recipes: [`docs/INTEGRATE.md`](./INTEGRATE.md).
 
 ---
 
-## The 5-minute script
+## What we're proudest of
 
-> Timing in **bold**. Actions in `monospace`. What to say in plain prose.
+1. **The Layer 1 / Layer 2 split.** Most agent governance projects ship a
+   rules engine and call it done. Heimdall ships a rules engine on top of
+   a cryptographic attenuation primitive that makes a class of attack
+   *unrepresentable*. That distinction is the whole moat.
 
-### **0:00 — 0:30 · Open frame** *(landing page)*
+2. **The integration is two lines.** `pip install heimdall-sdk`, then
+   `hd.delegate(...)` before each agent-to-agent call. No framework, no
+   sidecar, no rewrite. Compare to "rewrite your agents on top of our
+   platform" — the entire shape of competing products.
 
-> "AI agents now hand authority to other agents to get work done. Nobody is
-> watching what gets handed off. Heimdall is the air traffic control for
-> that hand-off — one class of attack made unrepresentable, the rest visible
-> and configurable."
+3. **The Veea complement.** Lobster Trap inspects the model boundary;
+   Heimdall inspects the agent boundary. The Step Finance class of attack
+   crosses both — and the proof is the DPI evidence card sitting under
+   the chain canvas during the attack scene. Two boundaries, no overlap.
 
-Action: scroll once on the landing page to show the architecture diagram, then click `Open watchpost` (top right).
-
-### **0:30 — 1:00 · Meet the cast** *(dashboard, Cast section)*
-
-> "Four DeFi agents. A coordinator that takes the user's intent. A market
-> data agent. An executor that signs Sepolia transfers. And a shadow
-> account — an agent that was set up months ago and forgotten."
-
-Action: hover over each agent card in the Cast section. Point out the
-`scope` chips (`read:portfolio`, `execute:trade`, etc.).
-
-Key beat: the audience must understand that **each agent carries different
-capabilities**. The attack later depends on this.
-
-### **1:00 — 1:45 · A normal day** *(Act 02 — Routine)*
-
-> "Watch a normal user request. The coordinator delegates to market data.
-> Heimdall signs each hop. The rule sidebar lights up green."
-
-Action: click `▷ Run routine`. Two hops draw on the canvas. The rule
-sidebar fills with allow cards.
-
-While it runs:
-
-> "Two signed hops. Every rule fired ALLOW. Both layers — protocol and
-> policy — agreed. Chain depth two. Notice the rule cards aren't decoration;
-> each one is a YAML primitive that ran against the real chain."
-
-### **1:45 — 3:00 · The attack** *(Act 03 — the headline moment)*
-
-> "Now the same agent stack gets a poisoned external feed."
-
-Action: click `▷ Run attack`. Three things happen in sequence — pause and
-narrate each:
-
-1. **Hops 1 and 2 draw normally.**
-   > "User → coordinator → market data. Fine so far."
-
-2. **A yellow flag fires.**
-   > "Lobster Trap sees prompt-injection patterns in the external feed.
-   > That's the integration with Veea — a DPI proxy sitting between every
-   > agent and the model behind it."
-
-   Point at the new **DPI evidence card** that appears under the canvas.
-   > "Declared on the left, detected on the right. The agent said 'fetch
-   > market sentiment'. The proxy saw 'invoke agent with elevated scope.'
-   > That's the prompt injection in flight."
-
-3. **A red deny burst fires on the canvas.**
-   > "Now the compromised market data agent tries to forge `execute:trade`
-   > scope and hand it to the shadow account. Heimdall's signing function
-   > refuses. **Layer 1 — capability attenuation.** The credential is never
-   > minted. The executor never receives a JWT to act on. There is no rule
-   > to bypass; the cryptography itself is what refuses."
-
-Point at the rule sidebar. `capability_attenuation DENY` is at the top.
-Open it; show `scope ['execute:trade'] ⊄ parent scope`.
-
-### **3:00 — 4:00 · Without Heimdall** *(Compare Act — counterfactual)*
-
-> "Watch the same chain with Heimdall off."
-
-Action: in the Compare Act, click `▷ Run with Heimdall OFF`.
-
-> "Same agents. Same external content. No protocol layer. The forged
-> credential is signed because no one is checking. The executor receives
-> it and broadcasts a Sepolia transfer."
-
-Point at the green tx URL chip that appears.
-
-> "$27M, real on-chain. That's what makes the protocol layer non-optional.
-> The point of Heimdall isn't that *one more rule fired*. The point is that
-> a class of attack stopped being representable at all."
-
-### **4:00 — 4:30 · The incident report** *(optional)*
-
-Action: click the chain ID in the right rail → `View incident report`.
-
-> "Every blocked or flagged chain auto-generates a Markdown incident memo
-> via Gemini. Compliance and security teams subscribe to these."
-
-(Skip this if you're tight on time. The slide deck covers it.)
-
-### **4:30 — 5:00 · Close**
-
-> "Two-minute install. Five-minute integration. Three lines of SDK around
-> each agent call. MIT licensed. Built on Veea Lobster Trap.
->
-> Heimdall is at github.com/patrick-steve/heimdall, the live dashboard is
-> at heimdall-backend.onrender.com/dashboard, and the docs walk you from a
-> fresh clone to a first delegation in five minutes."
-
-End on the dashboard with the attack still showing — the red BLOCKED chip
-is the last thing on screen.
+4. **Three verticals from one engine.** DeFi, Healthcare, and Customer
+   Service share the same six primitives. The verticals differ only by
+   YAML — agents, tools, and policy packs. That's the strongest evidence
+   we have that the primitives are the right primitives.
 
 ---
 
-## What to expect on stage
+## What's honestly missing
 
-### The WebSocket may stutter on slow networks
+Pulled verbatim from the landing page's § HONEST LIMITATIONS section:
 
-If events arrive out of order, the chain canvas still renders correctly
-(it derives state from accumulated events). Don't apologise — point it out:
-
-> "The WebSocket replays the chain state, so even if a packet drops the
-> picture catches up."
-
-### Cold-start the first time you hit Render that day
-
-Free tier wakes in 30-60s. If the landing page hangs, refresh once. Or run
-the keep-warm loop in the prep section.
-
-### Gemini rate limits
-
-If you've run the attack 5+ times in a few minutes, the incident memo step
-can rate-limit. The memo skip is graceful — the dashboard still shows
-BLOCKED. Don't open the incident report panel as a recovery move.
-
-### Toggle state can stick
-
-If Heimdall is OFF from the Compare Act and you forget to flip it back,
-the next `Run attack` won't block. **Always confirm the toggle is green
-before saying "watch the protocol refuse".**
+- **JWT, not Biscuit.** HS256 signatures instead of capability tokens with
+  formal scope algebra. Upgrade is localised to `backend/jwt_chain.py`.
+- **Set-membership drift, not ML.** `behavioral_drift` flags novel
+  delegation targets via membership. Production would use embedding
+  similarity over feature vectors.
+- **Single demo organisation.** Tenant isolation works at the protocol
+  level; the demo seed contains two tenants (legit + attacker).
+- **Healthcare and Customer Service are sketches.** The mechanism is real
+  in every vertical; only DeFi has functional tool bindings end-to-end.
+- **No production-grade tests.** Scope decisions in `plan.md`. Auditable
+  in a single afternoon, not deployable to staging.
 
 ---
 
-## If something breaks (backup plans)
+## The roadmap
 
-| Symptom                              | Recovery                                                                 |
-|--------------------------------------|--------------------------------------------------------------------------|
-| Dashboard shows no agents             | Refresh once. If still empty: `docker compose exec backend heimdall reset` |
-| `WS · disconnected` in header         | Refresh. The page reconnects on mount.                                  |
-| Run attack does nothing               | Check Heimdall toggle is ON. Check vertical selector is DeFi.           |
-| Incident report endpoint hangs        | Skip it — don't open it during the demo. The block already happened.    |
-| Render service throws 502             | Switch to the `/deck` PDF and narrate from there. Live demo is upside, not floor. |
+Three things, all extensions of code that already ships:
 
----
+1. **Plain-English → YAML.** Operator types a sentence; the same Gemini
+   pipeline that writes incident memos emits a candidate rule against the
+   six primitives.
+2. **Dry-run against the ledger.** Replay the last N days of real chains
+   against a candidate rule. Show the diff before any DENY hits production.
+3. **Traffic-mined rule suggestions.** Run in shadow for a week. Cluster
+   the chains the gateway saw. Propose the rules the operator never
+   thought to write.
 
-## Audience questions you'll get (and the right answer)
-
-**Q. How is this different from a JWT-based auth library?**
-
-> Auth libraries validate that a caller is who they claim to be. Heimdall
-> validates the *chain of authority that brought them here*. The protocol
-> layer enforces that a child credential can only carry a subset of its
-> parent's scope — there's no way for a deeply-nested call to claim a
-> capability that wasn't passed down the chain. That's the unrepresentable
-> piece. Layer 2 is then the operator's runtime policy on top.
-
-**Q. Why not just use OPA / Cedar / a rules engine?**
-
-> Layer 2 is essentially that, scoped to this domain. Six primitives, YAML,
-> hot-reloadable. The new thing is Layer 1 — the cryptographic attenuation
-> that makes a class of policy questions disappear before any rules engine
-> runs.
-
-**Q. What about Veea Lobster Trap? Is this competing?**
-
-> Complementary. Lobster Trap inspects what an agent says to a model.
-> Heimdall inspects what agents say to each other. Two boundaries, no
-> overlap. The Step Finance attack crosses both — Lobster Trap catches the
-> injection at the model boundary, Heimdall catches the unauthorised
-> delegation at the agent boundary.
-
-**Q. Performance overhead?**
-
-> The hot path is `POST /api/v1/delegate` — single DB row insert plus six
-> rule evaluations over the current chain. Sub-10ms in our smoke tests. The
-> SDK adds one HTTP round-trip per agent-to-agent hop, comparable to a
-> Stripe API call before charging a card.
-
-**Q. What's the roadmap?**
-
-> Three things. Plain-English-to-YAML rule authoring via Gemini. Dry-run
-> mode that replays historical chains against candidate rules before they
-> hit production. And traffic-mined rule suggestions — shadow mode for a
-> week, cluster the chains the gateway saw, propose the rules the operator
-> never thought to write. All three are extensions of code that already
-> ships; none of them is a new product.
-
-**Q. What's missing?**
-
-> Real prompt-injection ML (we delegate that to Veea), production-grade
-> behavioural drift (current implementation is set-membership; production
-> would use embedding similarity), and a real multi-tenant policy server.
-> All called out in the Honest Limitations section of the landing page.
+See the landing page's § ROADMAP section for the cards each of these
+points at (`backend/policy_engine.py`, `backend/endpoints/replay.py`,
+`agent_behavior_baseline`).
 
 ---
 
-## Variations
+## Credits
 
-### Lightning version (90 seconds)
+Built on **[Veea Lobster Trap](https://github.com/veeainc/lobstertrap)** — the
+open-source DPI proxy that handles the model boundary. Gemini handles the
+incident memo generation. The rest is Python, FastAPI, SQLAlchemy, JWT,
+Next.js, Tailwind, and the smallest amount of D3 we could get away with.
 
-Skip routine (it's the warm-up; the audience can intuit it). Open
-dashboard → run attack → narrate the red burst and DPI card → toggle off
-→ run again → show the green tx. End. Two scenes, one comparison, done.
-
-### Deep version (10 minutes)
-
-Add after the attack scene:
-
-- **Switch verticals** to Healthcare. Run the same attack pattern. Show
-  that the *same primitives* catch a different attack (PHI rewrite, BAA
-  isolation). The point: one engine, three packs.
-- **Open `policies/examples/compliance_pack_hipaa.yaml`**. Walk through
-  two rules and the HIPAA §164 sections they operationalise.
-- **Show the v1 API** by curl-ing `/api/v1/delegate` from a terminal.
-  Audience sees that the dashboard isn't the product — the gateway is.
-
-### Q&A-only version
-
-If you're slotted into a panel rather than a stage, the slide deck stands
-alone. Hand judges the PDF, walk to the dashboard for the attack scene
-only, then answer questions.
+MIT licensed. Single contributor (Patrick). Codebase walkable in one
+afternoon — `plan.md`, `implementation.md`, and `demo_script_plan.md` at
+repo root are the original design docs.
