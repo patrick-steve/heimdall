@@ -4,10 +4,10 @@ import { HeimdallMark } from "@/components/landing/marks/HeimdallMark";
 import { LobsterTrapMark } from "@/components/landing/marks/LobsterTrapMark";
 import { GeminiMark } from "@/components/landing/marks/GeminiMark";
 
-const TOTAL = 12;
+const TOTAL = 14;
 
 /**
- * Heimdall hackathon deck — 12 slides.
+ * Heimdall hackathon deck — 14 slides.
  *
  * Lives at /deck. Designed for both screen viewing and PDF export via
  * Chrome → File → Print → Save as PDF (landscape, no margins). Each <Slide>
@@ -22,11 +22,13 @@ export default function Deck() {
       <Slide3Attack />
       <Slide4TwoLayer />
       <Slide5LobsterTrap />
+      <SlideCompare />
       <Slide6Architecture />
       <Slide7Demo />
       <Slide8Counterfactual />
       <Slide9Verticals />
       <Slide10Install />
+      <SlideReceipts />
       <Slide11Roadmap />
       <Slide12Close />
     </main>
@@ -164,7 +166,7 @@ function Stat({ k, v, tone = "zinc", mono = false }: { k: string; v: string; ton
 function Slide2Problem() {
   return (
     <Slide index="01" label="PROBLEM" n={2}>
-      <div className="grid grid-cols-12 gap-10 h-full items-center">
+      <div className="grid grid-cols-12 gap-10 flex-1 items-center">
         <div className="col-span-12 lg:col-span-6">
           <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "52px" }}>
             AI agents now hand authority to other agents.{" "}
@@ -173,7 +175,8 @@ function Slide2Problem() {
           <p className="mt-7 max-w-[52ch] text-zinc-400 leading-relaxed text-[15px]">
             Every modern agent stack ends with one agent calling another to finish a task.
             The first agent reads a prompt; the last one signs a transaction, writes a chart,
-            or refunds a customer. Between them is a chain that has no protocol.
+            or refunds a customer. Between them is a chain that has no protocol — every hop
+            trusts the previous hop&apos;s claim about what it can do.
           </p>
         </div>
 
@@ -182,18 +185,18 @@ function Slide2Problem() {
         </div>
       </div>
 
-      <div className="mt-10 grid grid-cols-3 gap-6 border-t border-edge pt-8">
-        <Quote
-          source="Step Finance · Q4 2025"
-          quote="One compromised research agent forged $30M of unauthorised transfers across three protocols."
+      <div className="mt-8 grid grid-cols-3 gap-6 border-t border-edge pt-7">
+        <Observation
+          tag="agent-to-agent attack class"
+          line="A prompt-injected agent forges authority it never carried — and downstream agents have no way to tell."
         />
-        <Quote
-          source="HHS OCR · 2024"
-          quote="Patient records re-written by an automated triage tool with no audit trail."
+        <Observation
+          tag="regulatory pressure"
+          line="HIPAA, SOC 2, and the EU AI Act all ask the same question: who signed off on this action, and what authority did they hold?"
         />
-        <Quote
-          source="Veea · Lobster Trap thesis"
-          quote="Agent-to-agent permission systems are the floor, not the ceiling."
+        <Observation
+          tag="veea positioning"
+          line='Lobster Trap is "the floor, not the ceiling." Permission systems for agent chains are explicitly upstack.'
         />
       </div>
     </Slide>
@@ -269,11 +272,11 @@ function Node({ x, y, label, color, attackTag = false }: { x: number; y: number;
   );
 }
 
-function Quote({ source, quote }: { source: string; quote: string }) {
+function Observation({ tag, line }: { tag: string; line: string }) {
   return (
-    <div className="border-l border-edge pl-5">
-      <p className="text-[13px] text-zinc-300 leading-snug">&ldquo;{quote}&rdquo;</p>
-      <p className="mt-3 slide-eyebrow text-zinc-600">{source}</p>
+    <div className="border-l-2 border-bifrost/30 pl-5">
+      <p className="slide-eyebrow text-bifrost mb-3">{tag}</p>
+      <p className="text-[13px] text-zinc-300 leading-snug">{line}</p>
     </div>
   );
 }
@@ -283,24 +286,62 @@ function Quote({ source, quote }: { source: string; quote: string }) {
 function Slide3Attack() {
   return (
     <Slide index="02" label="ANATOMY OF AN ATTACK" n={3}>
-      <div className="grid grid-cols-12 gap-10 h-full">
-        <div className="col-span-12 lg:col-span-5 self-center">
-          <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "48px" }}>
-            One compromised agent can forge any capability{" "}
-            <span className="text-deny">it knows the name of.</span>
-          </h2>
-          <p className="mt-6 max-w-[44ch] text-zinc-400 leading-relaxed text-[15px]">
-            The Step Finance pattern. An LLM-driven agent is jailbroken by external content,
-            then asks a downstream agent to act on a privilege it was never granted.
-            Without a protocol, downstream agents have no way to tell.
-          </p>
+      <div className="grid grid-cols-12 gap-10 flex-1">
+        <div className="col-span-12 lg:col-span-5 flex flex-col justify-between">
+          <div>
+            <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "44px" }}>
+              One compromised agent can forge any capability{" "}
+              <span className="text-deny">it knows the name of.</span>
+            </h2>
+            <p className="mt-6 max-w-[44ch] text-zinc-400 leading-relaxed text-[15px]">
+              An LLM-driven agent is jailbroken by external content, then asks a downstream
+              agent to act on a privilege it was never granted. Without a protocol, downstream
+              agents have no way to tell.
+            </p>
+          </div>
+
+          {/* Code receipt — the proof behind "unrepresentable". */}
+          <div className="border border-bifrost/40 bg-rune/10 p-5 mt-7">
+            <div className="flex items-center justify-between mb-3">
+              <span className="slide-eyebrow text-bifrost">heimdall&apos;s answer</span>
+              <span className="slide-eyebrow text-zinc-600">backend/jwt_chain.py</span>
+            </div>
+            <pre className="font-mono text-[11.5px] leading-relaxed text-zinc-200 whitespace-pre overflow-hidden">
+{`if parent_scope and not set(scope).issubset(parent_scope):
+    extra = sorted(set(scope) - set(parent_scope))
+    raise AttenuationViolation(
+        f"scope {extra} not in parent scope {sorted(parent_scope)}"
+    )`}
+            </pre>
+            <p className="mt-3 text-[11.5px] text-zinc-500 leading-relaxed">
+              Four lines. The credential is never minted. There is no rule to bypass.
+            </p>
+          </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-7">
+        <div className="col-span-12 lg:col-span-7 flex flex-col justify-center">
           <AttackTimeline />
+
+          {/* Tally row below the timeline */}
+          <div className="mt-8 grid grid-cols-4 border border-edge bg-slab/40">
+            <Tally label="hops attempted" value="4" tone="zinc" />
+            <Tally label="credentials minted" value="2" tone="zinc" />
+            <Tally label="layer 01 denies" value="1" tone="deny" />
+            <Tally label="$ moved" value="0" tone="allow" />
+          </div>
         </div>
       </div>
     </Slide>
+  );
+}
+
+function Tally({ label, value, tone }: { label: string; value: string; tone: "zinc" | "deny" | "allow" }) {
+  const t = tone === "deny" ? "text-deny" : tone === "allow" ? "text-allow" : "text-zinc-100";
+  return (
+    <div className="px-4 py-4 border-r border-edge last:border-r-0">
+      <div className="slide-eyebrow text-zinc-500 mb-2">{label}</div>
+      <div className={`font-display text-[26px] font-bold ${t} leading-none`}>{value}</div>
+    </div>
   );
 }
 
@@ -505,7 +546,7 @@ function Connector() {
 
 function Slide6Architecture() {
   return (
-    <Slide index="05" label="ARCHITECTURE" n={6} bg="grid">
+    <Slide index="06" label="ARCHITECTURE" n={7} bg="grid">
       <div className="flex-1 flex flex-col justify-center">
         <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight mb-2" style={{ fontSize: "44px" }}>
           One HTTP call before every hop.
@@ -642,7 +683,7 @@ function Row({ k, v }: { k: string; v: string }) {
 
 function Slide7Demo() {
   return (
-    <Slide index="06" label="DEMO · ATTACK BLOCKED" n={7}>
+    <Slide index="07" label="DEMO · ATTACK BLOCKED" n={8}>
       <div className="grid grid-cols-12 gap-8 h-full items-stretch">
         <div className="col-span-12 lg:col-span-4 self-center">
           <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "40px" }}>
@@ -672,7 +713,7 @@ function Slide7Demo() {
 
 function Slide8Counterfactual() {
   return (
-    <Slide index="07" label="DEMO · HEIMDALL OFF" n={8}>
+    <Slide index="08" label="DEMO · HEIMDALL OFF" n={9}>
       <div className="grid grid-cols-12 gap-8 h-full items-stretch">
         <div className="col-span-12 lg:col-span-4 self-center">
           <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "40px" }}>
@@ -838,7 +879,7 @@ function RuleCard({ tone, rule, reason, layer, muted = false, counterfactual = f
 
 function Slide9Verticals() {
   return (
-    <Slide index="08" label="VERTICALS" n={9}>
+    <Slide index="09" label="VERTICALS" n={10}>
       <div className="flex-1 flex flex-col justify-center">
         <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight mb-2" style={{ fontSize: "44px" }}>
           One engine. <span className="text-zinc-500">Three packs.</span>
@@ -905,7 +946,7 @@ function VerticalCard({ name, tag, cap, body, rules }: { name: string; tag: stri
 
 function Slide10Install() {
   return (
-    <Slide index="09" label="INSTALL" n={10} bg="grid">
+    <Slide index="10" label="INSTALL" n={11} bg="grid">
       <div className="flex-1 flex flex-col justify-center">
         <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "46px" }}>
           Self-host in two minutes. <span className="text-zinc-500">SDK in five.</span>
@@ -951,7 +992,7 @@ function InstallStep({ n, title, cmd, note }: { n: string; title: string; cmd: s
 
 function Slide11Roadmap() {
   return (
-    <Slide index="10" label="ROADMAP" n={11}>
+    <Slide index="12" label="ROADMAP" n={13}>
       <div className="flex-1 flex flex-col justify-center">
         <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "46px" }}>
           The rules write themselves <span className="text-zinc-500">next.</span>
@@ -998,7 +1039,7 @@ function RoadmapCard({ tag, tagTone, title, body, uses }: { tag: string; tagTone
 
 function Slide12Close() {
   return (
-    <Slide index="11" label="CLOSE" n={12} bg="grid">
+    <Slide index="13" label="CLOSE" n={14} bg="grid">
       <div className="pointer-events-none absolute inset-0 -z-0 deck-only-screen">
         <div
           className="absolute deck-beam"
@@ -1057,5 +1098,176 @@ function LinkRow({ label, value, tone = "zinc", mono = false }: { label: string;
         {value}
       </span>
     </div>
+  );
+}
+
+/* ─────────────────────── Slide · Compare ─────────────────────── */
+
+function SlideCompare() {
+  return (
+    <Slide index="05" label="COMPARE" n={6}>
+      <div className="flex-1 flex flex-col justify-center">
+        <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight mb-2" style={{ fontSize: "46px" }}>
+          Three real alternatives. <span className="text-zinc-500">What each leaves on the table.</span>
+        </h2>
+        <p className="text-zinc-500 text-[15px] mb-10 max-w-[68ch] leading-relaxed">
+          Heimdall is not the first attempt at agent governance — it&apos;s the first that puts capability
+          attenuation in the protocol rather than the rules engine. Here&apos;s how it sits next to the
+          three things teams reach for today.
+        </p>
+
+        <div className="grid grid-cols-12 gap-5 mb-8">
+          <CompareCard
+            tag="alternative 01"
+            name="Framework guardrails"
+            example="LangChain callbacks · ADK middleware · OpenAI assistants"
+            does="In-process hooks that observe each agent call and can short-circuit."
+            misses="Runs in the same process as the agent. A compromised agent compromises the guardrail. No notion of delegated authority across hops."
+          />
+          <CompareCard
+            tag="alternative 02"
+            name="Policy engines"
+            example="OPA · Cedar · custom rules services"
+            does="External, language-agnostic policy evaluation. Decoupled from the agent runtime."
+            misses="Still a runtime check, not a cryptographic primitive. A bug or bypass flips ALLOW to DENY. No protocol that makes the attack itself unrepresentable."
+          />
+          <CompareCard
+            tag="alternative 03"
+            name="Network sidecar proxies"
+            example="Envoy filters · custom DPI · service mesh policies"
+            does="See traffic between services, can block on patterns. Mature ecosystem."
+            misses="Don&apos;t understand the semantics of a delegated capability. Can&apos;t tell whether agent B legitimately holds the scope it&apos;s about to pass forward."
+          />
+          <HeimdallCard />
+        </div>
+
+        <div className="border-t border-edge pt-6 grid grid-cols-12 gap-6">
+          <div className="col-span-12 md:col-span-8 max-w-prose">
+            <p className="text-zinc-400 leading-relaxed text-[14px]">
+              <span className="text-zinc-200">Heimdall&apos;s claim is small and specific.</span>{" "}
+              Capability attenuation belongs at the protocol layer, not in a rules engine. Once that
+              piece is cryptographic, the rules engine can be small, configurable, and honest about
+              what it does and doesn&apos;t catch.
+            </p>
+          </div>
+          <div className="col-span-12 md:col-span-4 self-end font-mono text-[11px] uppercase tracking-widest text-zinc-500 text-right">
+            no overlap · MIT licensed · 7 days · 1 builder
+          </div>
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+function CompareCard({ tag, name, example, does, misses }: { tag: string; name: string; example: string; does: string; misses: string }) {
+  return (
+    <article className="col-span-12 md:col-span-3 border border-edge bg-slab/40 p-5 flex flex-col">
+      <div className="slide-eyebrow text-zinc-600 mb-3">{tag}</div>
+      <h3 className="font-display text-[20px] font-semibold text-zinc-100 mb-1 leading-tight">{name}</h3>
+      <p className="font-mono text-[10.5px] text-zinc-500 mb-4 leading-relaxed">{example}</p>
+      <div className="border-t border-edge pt-3 mb-3">
+        <div className="slide-eyebrow text-allow mb-2">does</div>
+        <p className="text-[12.5px] text-zinc-400 leading-snug">{does}</p>
+      </div>
+      <div className="border-t border-edge pt-3 mt-auto">
+        <div className="slide-eyebrow text-warn mb-2">misses</div>
+        <p className="text-[12.5px] text-zinc-400 leading-snug" dangerouslySetInnerHTML={{ __html: misses }} />
+      </div>
+    </article>
+  );
+}
+
+function HeimdallCard() {
+  return (
+    <article className="col-span-12 md:col-span-3 border border-bifrost/50 bg-rune/10 p-5 flex flex-col relative">
+      <div className="absolute -top-2 -right-2 slide-eyebrow text-ink bg-bifrost px-2 py-1">this</div>
+      <div className="slide-eyebrow text-bifrost mb-3">heimdall</div>
+      <h3 className="font-display text-[20px] font-bold text-zinc-100 mb-1 leading-tight">Cryptographic protocol + YAML policy</h3>
+      <p className="font-mono text-[10.5px] text-bifrost mb-4 leading-relaxed">Layer 01 + Layer 02 · hd.delegate(...)</p>
+      <div className="border-t border-bifrost/30 pt-3 mb-3">
+        <div className="slide-eyebrow text-allow mb-2">does</div>
+        <p className="text-[12.5px] text-zinc-300 leading-snug">
+          Refuses to mint child credentials that widen scope. Six policy primitives on top. SDK
+          integration in three lines.
+        </p>
+      </div>
+      <div className="border-t border-bifrost/30 pt-3 mt-auto">
+        <div className="slide-eyebrow text-bifrost mb-2">earns</div>
+        <p className="text-[12.5px] text-zinc-300 leading-snug">
+          <span className="text-zinc-100">A class of attack becomes unrepresentable.</span>{" "}
+          Not a check that fires later — a credential that never exists.
+        </p>
+      </div>
+    </article>
+  );
+}
+
+/* ─────────────────────── Slide · Receipts ─────────────────────── */
+
+function SlideReceipts() {
+  return (
+    <Slide index="11" label="WHAT WE SHIPPED" n={12} bg="grid">
+      <div className="flex-1 flex flex-col justify-center">
+        <h2 className="font-display font-semibold text-zinc-100 leading-[1.05] tracking-tight" style={{ fontSize: "46px" }}>
+          Receipts. <span className="text-zinc-500">Every line of the pitch is checkable.</span>
+        </h2>
+        <p className="mt-5 text-zinc-500 text-[15px] max-w-[60ch] leading-relaxed mb-10">
+          One builder, seven days. MIT-licensed. Integrable today.
+        </p>
+
+        <div className="grid grid-cols-12 gap-5 mb-8">
+          <Metric big="2"  unit="layers"        sub="protocol (HS256 attenuation) + policy (YAML)" />
+          <Metric big="6"  unit="primitives"    sub="chain_pattern · agent_state · chain_depth · value_threshold · intent_mismatch · behavioral_drift" />
+          <Metric big="12" unit="example packs" sub="HIPAA · SOC 2 · EU AI Act · 9 single-rule patterns" />
+          <Metric big="3"  unit="verticals"     sub="DeFi (wired) · Healthcare (mock EHR) · Customer Service (yaml-only)" />
+        </div>
+
+        <div className="grid grid-cols-12 gap-5">
+          <Metric big="2"  unit="SDKs"          sub="pip install heimdall-sdk · npm i @heimdall/sdk" />
+          <Metric big="7"  unit="v1 endpoints"  sub="/delegate · /agents · /chains · /audit · /whoami · /docs (OpenAPI)" mono />
+          <Metric big="4"  unit="docs"          sub="QUICKSTART · API · POLICIES · INTEGRATE" />
+          <Metric big="1"  unit="docker compose stack" sub="backend · frontend · optional lobstertrap profile" />
+        </div>
+
+        <div className="mt-8 border-t border-edge pt-6 grid grid-cols-12 gap-6 items-end">
+          <div className="col-span-12 md:col-span-8">
+            <ul className="grid grid-cols-2 gap-x-8 gap-y-2 text-[13px] text-zinc-400">
+              <Check>Real cryptographic primitive (`backend/jwt_chain.py`)</Check>
+              <Check>Hot-reloadable YAML rules</Check>
+              <Check>WebSocket real-time dashboard</Check>
+              <Check>Live Veea Lobster Trap proxy in the data path</Check>
+              <Check>Org + API key auth (`hd_live_*` / `hd_test_*`)</Check>
+              <Check>Operator CLI (`heimdall keys create|list|revoke`)</Check>
+            </ul>
+          </div>
+          <div className="col-span-12 md:col-span-4 text-right">
+            <div className="slide-eyebrow text-zinc-600 mb-2">deployed on</div>
+            <div className="font-mono text-[13px] text-bifrost">heimdall-backend.onrender.com</div>
+            <div className="font-mono text-[12px] text-zinc-500 mt-1">+ heimdall-lobstertrap.onrender.com</div>
+          </div>
+        </div>
+      </div>
+    </Slide>
+  );
+}
+
+function Metric({ big, unit, sub, mono = false }: { big: string; unit: string; sub: string; mono?: boolean }) {
+  return (
+    <div className="col-span-12 md:col-span-3 border border-edge bg-slab/40 p-5">
+      <div className="flex items-baseline gap-2 mb-3">
+        <span className="font-display font-bold text-bifrost leading-none" style={{ fontSize: "44px" }}>{big}</span>
+        <span className="slide-eyebrow text-zinc-500">{unit}</span>
+      </div>
+      <p className={`${mono ? "font-mono text-[11px]" : "text-[12.5px]"} text-zinc-400 leading-snug`}>{sub}</p>
+    </div>
+  );
+}
+
+function Check({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5">
+      <span className="text-allow font-mono text-[11px] mt-0.5">✓</span>
+      <span dangerouslySetInnerHTML={{ __html: String(children).replace(/`([^`]+)`/g, '<span class="font-mono text-[12px] text-zinc-200">$1</span>') }} />
+    </li>
   );
 }
