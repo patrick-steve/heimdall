@@ -33,11 +33,16 @@ services:
         sync: false                # set manually in the Render dashboard
       - key: HEIMDALL_ALLOWED_ORIGINS
         sync: false                # set to your Vercel URL after first deploy
-      # Lobster Trap URL: set this to the public URL of the second service
-      # below once it deploys (e.g. https://heimdall-lobstertrap.onrender.com).
-      # When unset, the backend falls back to its built-in simulation.
+      # Lobster Trap URL — auto-wired from the second service below so
+      # the backend always knows where the proxy lives without a manual
+      # paste step. `property: host` resolves to the bare hostname
+      # (e.g. heimdall-lobstertrap.onrender.com); the backend's
+      # lobster_client.py appends /v1/chat/completions if missing.
       - key: LOBSTER_TRAP_URL
-        sync: false
+        fromService:
+          type: web
+          name: heimdall-lobstertrap
+          property: host
       # Sepolia env vars deliberately unset → executor stays in mock mode.
 
   # ── 2. Lobster Trap reverse proxy ────────────────────────────────
