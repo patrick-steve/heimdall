@@ -52,6 +52,27 @@ export interface ExternalContentEvent {
   chain_id: string;
   sentiment: { sentiment_text?: string; is_external?: boolean };
   note: string;
+  /** Operator-authored declared intent for the hop that pulled the content. */
+  declared_intent?: string;
+  /** Prose from the lobster_trap.yaml rule that matched, or DPI category. */
+  detected_intent?: string;
+  /** Name of the lobster_trap.yaml rule that fired. */
+  matched_rule?: string | null;
+  /** DPI intent_category (e.g. "credential_access"). */
+  intent_category?: string | null;
+  /** DPI risk_score in [0, 1]. */
+  risk_score?: number;
+  contains_injection?: boolean;
+  mismatches?: Array<{
+    field: string;
+    declared: string;
+    detected: string;
+    severity: "critical" | "warning" | "info";
+  }>;
+  /** Raw poisoned content the data agent pulled (truncated client-side). */
+  raw_content?: string;
+  /** True when LOBSTER_TRAP_URL is unset — proxy is simulated, not bound. */
+  lobster_trap_mocked?: boolean;
   ts?: string;
 }
 

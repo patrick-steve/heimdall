@@ -25,10 +25,12 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from backend.config import settings
 from backend.db import AgentBehaviorBaseline, ChainCredential, SessionLocal, utcnow
 from backend.endpoints.delegate import delegate_raw
 from backend.policy_loader import (
     get_active_agents,
+    get_active_lobster_trap_rules,
     get_active_vertical,
 )
 
@@ -508,11 +510,43 @@ async def _scenario_attack(request: Request, db: Session, scenario_name: str = "
     poisoned: dict[str, Any] = {}
     if setup_tool:
         poisoned = await setup_tool(**pack.attack_setup_args)
+
+    # Run the DPI rules against the external content so the dashboard can
+    # show declared-vs-detected side-by-side. In live mode the proxy already
+    # does this in the data path between agents and Gemini; here we expose
+    # the same analysis to the operator regardless.
+    from backend.lobster_client import _simulate_dpi
+    raw_content = str(poisoned.get(pack.attack_detected_field, "")) or ""
+    declared_for_dpi = pack.attack_coord_to_data.intent
+    dpi = _simulate_dpi(raw_content, declared_for_dpi)
+    dpi_ingress = (dpi or {}).get("ingress") or {}
+    dpi_detected = dpi_ingress.get("detected") or {}
+    dpi_mismatches = dpi_ingress.get("mismatches") or []
+    matched_rule = dpi_ingress.get("rule_name") or None
+    # Pull the operator-authored prose for the rule that fired, if any.
+    detected_intent_prose: str | None = None
+    if matched_rule:
+        for r in get_active_lobster_trap_rules():
+            if r.get("name") == matched_rule:
+                meta = r.get("metadata") or {}
+                detected_intent_prose = meta.get("detected_intent")
+                break
+
     await ws_manager.broadcast({
         "type": "external_content_flagged",
         "chain_id": chain_id,
         "sentiment": poisoned,   # name kept for back-compat with the landing-page client
         "note": "Lobster Trap: prompt injection detected in external content",
+        # Lobster Trap evidence — surfaced for the dashboard's DPI card.
+        "declared_intent": declared_for_dpi,
+        "detected_intent": detected_intent_prose or dpi_detected.get("intent_category"),
+        "matched_rule": matched_rule,
+        "intent_category": dpi_detected.get("intent_category"),
+        "risk_score": dpi_detected.get("risk_score"),
+        "contains_injection": bool(dpi_detected.get("contains_injection_patterns")),
+        "mismatches": dpi_mismatches,
+        "raw_content": raw_content,
+        "lobster_trap_mocked": settings.lobster_trap_mocked,
     })
     await asyncio.sleep(0.6)
 

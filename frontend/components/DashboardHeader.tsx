@@ -13,7 +13,6 @@ interface Props {
   health: {
     gemini: "live" | "mock" | "down";
     lobster: "live" | "mock" | "down";
-    sepolia: "live" | "mock" | "down";
   };
   activeChainId: string | null;
   chainDepth: number;
@@ -88,7 +87,7 @@ export function DashboardHeader({
       {/* Subsystem health strip */}
       <div className="px-5 py-2 flex flex-wrap items-center justify-between gap-y-2 gap-x-6 bg-slab/40">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-[10px] uppercase tracking-widest">
-          {(["gemini", "lobster", "sepolia"] as const).map((k) => (
+          {(["gemini", "lobster"] as const).map((k) => (
             <span key={k} className="flex items-center gap-2 text-zinc-600">
               <span className={clsx(
                 "dot",

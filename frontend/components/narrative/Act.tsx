@@ -2,6 +2,7 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { ChainCanvas } from "@/components/ChainCanvas";
+import { LobsterTrapEvidence } from "./LobsterTrapEvidence";
 import { Narrator } from "./Narrator";
 import { api } from "@/lib/api";
 import type {
@@ -132,21 +133,25 @@ export function Act({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-edge">
-          <div className="lg:col-span-7 relative" style={{ minHeight: "320px" }}>
-            <ChainCanvas events={events} agents={agents} filterChainId={chainId} />
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-edge">
+            <div className="lg:col-span-7 relative" style={{ minHeight: "320px" }}>
+              <ChainCanvas events={events} agents={agents} filterChainId={chainId} />
+            </div>
+            <aside className="lg:col-span-5 p-5 space-y-4">
+              <div className="eyebrow text-zinc-600">what happened</div>
+              <Narrator
+                events={events}
+                chainId={chainId}
+                script={script}
+                agents={agents}
+                vertical={vertical}
+              />
+            </aside>
           </div>
-          <aside className="lg:col-span-5 p-5 space-y-4">
-            <div className="eyebrow text-zinc-600">what happened</div>
-            <Narrator
-              events={events}
-              chainId={chainId}
-              script={script}
-              agents={agents}
-              vertical={vertical}
-            />
-          </aside>
-        </div>
+          {/* DPI evidence — only renders for chains with an external_content_flagged event (i.e. the attack scenes). */}
+          <LobsterTrapEvidence events={events} chainId={chainId} />
+        </>
       )}
 
       {/* Outcome chip + replay */}

@@ -7,7 +7,6 @@ interface Health {
   ok: boolean;
   gemini_available: boolean;
   lobster_trap_mocked: boolean;
-  sepolia_mocked: boolean;
 }
 
 type Row = { key: string; label: string; state: "live" | "mock" | "down" };
@@ -22,7 +21,6 @@ export function LiveStatusPanel() {
   const [rows, setRows] = useState<Row[]>([
     { key: "gemini", label: "Gemini",       state: "down" },
     { key: "lt",     label: "Lobster Trap", state: "down" },
-    { key: "sep",    label: "Sepolia",      state: "down" },
   ]);
   const [lastTick, setLastTick] = useState<string>("");
 
@@ -36,7 +34,6 @@ export function LiveStatusPanel() {
         setRows([
           { key: "gemini", label: "Gemini",       state: h.gemini_available ? "live" : "mock" },
           { key: "lt",     label: "Lobster Trap", state: h.lobster_trap_mocked ? "mock" : "live" },
-          { key: "sep",    label: "Sepolia",      state: h.sepolia_mocked ? "mock" : "live" },
         ]);
         setLastTick(new Date().toISOString().slice(11, 19));
       } catch {

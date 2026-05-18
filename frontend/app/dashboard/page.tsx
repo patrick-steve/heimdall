@@ -32,8 +32,8 @@ export default function Dashboard() {
   const [onChainId, setOnChainId] = useState<string | null>(null);
   const [offChainId, setOffChainId] = useState<string | null>(null);
   const [activeChainId, setActiveChainId] = useState<string | null>(null);
-  const [health, setHealth] = useState<{ gemini: HealthState; lobster: HealthState; sepolia: HealthState }>({
-    gemini: "down", lobster: "down", sepolia: "down",
+  const [health, setHealth] = useState<{ gemini: HealthState; lobster: HealthState }>({
+    gemini: "down", lobster: "down",
   });
 
   /**
@@ -53,10 +53,9 @@ export default function Dashboard() {
         setHealth({
           gemini: h.gemini_available ? "live" : "mock",
           lobster: h.lobster_trap_mocked ? "mock" : "live",
-          sepolia: h.sepolia_mocked ? "mock" : "live",
         });
       })
-      .catch(() => setHealth({ gemini: "down", lobster: "down", sepolia: "down" }));
+      .catch(() => setHealth({ gemini: "down", lobster: "down" }));
   }, []);
 
   useEffect(() => {
