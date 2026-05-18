@@ -113,9 +113,13 @@ function Slide1Hero() {
               Nothing crosses<br />
               <span className="text-bifrost">without being seen.</span>
             </h1>
-            <p className="mt-8 max-w-[44ch] text-[19px] text-zinc-400 leading-snug">
-              Runtime governance for AI agent delegation chains. One class of attack
+            <p className="mt-8 max-w-[48ch] text-[19px] text-zinc-400 leading-snug">
+              An HTTP gateway and SDK that authorises every agent-to-agent handoff.
+              Cryptographic at the protocol layer, YAML rules on top. One class of attack
               <span className="text-zinc-200"> made unrepresentable</span>; the rest, visible and configurable.
+            </p>
+            <p className="mt-3 max-w-[48ch] text-[13px] text-zinc-500 leading-snug">
+              For platform teams shipping agentic workflows — wraps any framework, fails closed, MIT.
             </p>
             <div className="mt-10 flex items-center gap-4 slide-eyebrow text-zinc-500">
               <span className="text-bifrost">Built on</span>
@@ -134,13 +138,14 @@ function Slide1Hero() {
           {/* Right rail — stats card */}
           <aside className="col-span-12 lg:col-span-4 relative z-10">
             <div className="border border-edge bg-slab/60 p-7">
-              <div className="slide-eyebrow text-zinc-500 mb-4">/api/health</div>
+              <div className="slide-eyebrow text-zinc-500 mb-4">/api/health · 200 OK</div>
               <dl className="space-y-4">
                 <Stat k="Layers"          v="2"             tone="bifrost" />
                 <Stat k="Rule primitives" v="6"             tone="zinc" />
                 <Stat k="Verticals"       v="3"             tone="zinc" />
                 <Stat k="SDKs"            v="Py · TS"       tone="zinc" />
                 <Stat k="Self-host"       v="docker compose" tone="zinc" mono />
+                <Stat k="Built in"        v="7 days · solo"  tone="zinc" />
               </dl>
             </div>
           </aside>
@@ -185,14 +190,18 @@ function Slide2Problem() {
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-3 gap-6 border-t border-edge pt-7">
+      <div className="mt-8 grid grid-cols-4 gap-5 border-t border-edge pt-7">
         <Observation
-          tag="agent-to-agent attack class"
-          line="A prompt-injected agent forges authority it never carried — and downstream agents have no way to tell."
+          tag="2026 · incidents"
+          line="88% of orgs reported confirmed or suspected agent security incidents in the last year (92.7% in healthcare). Source: CISO survey, 2026."
+        />
+        <Observation
+          tag="2026 · breaches"
+          line="Step Finance (Jan): AI trading agents moved 261K+ SOL — $27–30M — after device compromise. Mexico (Dec 25–Feb 26): one actor, nine agencies, 195M records."
         />
         <Observation
           tag="regulatory pressure"
-          line="HIPAA, SOC 2, and the EU AI Act all ask the same question: who signed off on this action, and what authority did they hold?"
+          line="HIPAA, SOC 2 and the EU AI Act all ask the same question: who signed off on this action, and what authority did they hold?"
         />
         <Observation
           tag="veea positioning"
@@ -358,17 +367,25 @@ function AttackTimeline() {
   ];
   const tone = (t: string) => t === "ok" ? "text-allow border-allow/30" : t === "warn" ? "text-warn border-warn/40" : "text-deny border-deny/40";
   return (
-    <ol className="space-y-3">
-      {STEPS.map((s) => (
-        <li key={s.n} className={`border-l-2 pl-5 py-2 ${tone(s.tone)}`}>
-          <div className="flex items-center gap-3 mb-1">
-            <span className={`slide-eyebrow ${tone(s.tone)} border-0`}>step {s.n}</span>
-            <span className="font-display text-[18px] text-zinc-100 font-semibold leading-snug">{s.title}</span>
-          </div>
-          <p className="font-mono text-[12px] text-zinc-500 leading-relaxed">{s.detail}</p>
-        </li>
-      ))}
-    </ol>
+    <>
+      <div className="mb-4 flex items-baseline gap-3 border-l-2 border-bifrost/40 pl-4">
+        <span className="slide-eyebrow text-bifrost">pattern · step finance · jan 2026</span>
+        <span className="text-[12px] text-zinc-500 leading-snug">
+          AI trading agents moved 261K+ SOL ($27–30M) after device compromise. The shape below is that shape.
+        </span>
+      </div>
+      <ol className="space-y-3">
+        {STEPS.map((s) => (
+          <li key={s.n} className={`border-l-2 pl-5 py-2 ${tone(s.tone)}`}>
+            <div className="flex items-center gap-3 mb-1">
+              <span className={`slide-eyebrow ${tone(s.tone)} border-0`}>step {s.n}</span>
+              <span className="font-display text-[18px] text-zinc-100 font-semibold leading-snug">{s.title}</span>
+            </div>
+            <p className="font-mono text-[12px] text-zinc-500 leading-relaxed">{s.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </>
   );
 }
 
@@ -410,6 +427,9 @@ function TwoLayerDiagram() {
             <h3 className="font-display text-[22px] font-semibold text-zinc-100 mb-2 leading-tight">
               Capability attenuation. Cryptographic. Unrepresentable.
             </h3>
+            <p className="text-[12.5px] text-bifrost/90 mb-2 leading-snug font-mono uppercase tracking-wider">
+              plain english · a child agent cannot hold a permission its parent didn&apos;t hold
+            </p>
             <p className="text-zinc-400 leading-relaxed text-[14px] max-w-[60ch]">
               A child credential&apos;s scope must be a subset of its parent&apos;s. The signing function
               refuses to mint anything else. Not a check that fires later — the JWT simply does
@@ -433,6 +453,9 @@ function TwoLayerDiagram() {
             <h3 className="font-display text-[22px] font-semibold text-zinc-100 mb-2 leading-tight">
               Six primitives in YAML. Configurable. Hot-reloaded.
             </h3>
+            <p className="text-[12.5px] text-zinc-400 mb-3 leading-snug font-mono uppercase tracking-wider">
+              plain english · everything that&apos;s a judgement call lives here, in a file you can read
+            </p>
             <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5 font-mono text-[12px] text-zinc-400">
               <li>· chain_pattern</li>
               <li>· value_threshold</li>
@@ -581,6 +604,9 @@ proceed(credential=result.credential)`}
               <Row k="depth" v="int" />
               <Row k="evaluations" v="[rule × layer × result]" />
             </dl>
+            <p className="mt-4 font-mono text-[11px] text-zinc-500 leading-snug">
+              fails closed · no response, no credential, no action. one hot-reload reloads policy without restarting.
+            </p>
           </div>
         </div>
       </div>
@@ -892,23 +918,23 @@ function Slide9Verticals() {
         <div className="grid grid-cols-3 gap-7">
           <VerticalCard
             name="DeFi"
-            tag="end-to-end"
-            cap="Real Sepolia wallet"
-            body="Four agents — coordinator, market data, executor, shadow. The attack signs a $27M transfer if Heimdall is off."
+            tag="live · default demo"
+            cap="Real Sepolia wallet · 4 agents wired"
+            body="Coordinator, market data, executor, shadow. With Heimdall off, the attack signs a $27M transfer. With it on, the credential is never minted. This is what you see at the live URL."
             rules="value_threshold_by_depth · shadow_to_executor"
           />
           <VerticalCard
             name="Healthcare"
-            tag="EHR mock"
+            tag="mock EHR · scriptable"
             cap="HIPAA pack mapped to §164.502/504"
-            body="Triage, fetch, update. The attack rewrites patient 4421's chart from external lab content."
+            body="Triage, fetch, update — runs against a mock EHR (no real PHI). The scripted attack rewrites patient 4421's chart from external lab content."
             rules="phi_minimum_necessary · BAA isolation"
           />
           <VerticalCard
             name="Customer Service"
-            tag="config-only"
-            cap="SOC 2 pack"
-            body="Refund authorisation chains. The mechanism is real; tools are left for an integrator to wire up."
+            tag="policy-only"
+            cap="SOC 2 pack · YAML shipped, runtime stubbed"
+            body="Refund authorisation chains. The rules and gateway flow are real; the agent tools are left as integration points for the operator."
             rules="agent_state · chain_depth_limit"
           />
         </div>
@@ -1244,6 +1270,15 @@ function SlideReceipts() {
             <div className="slide-eyebrow text-zinc-600 mb-2">deployed on</div>
             <div className="font-mono text-[13px] text-bifrost">heimdall-backend.onrender.com</div>
             <div className="font-mono text-[12px] text-zinc-500 mt-1">+ heimdall-lobstertrap.onrender.com</div>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-edge pt-5 grid grid-cols-12 gap-6">
+          <div className="col-span-12 md:col-span-3 slide-eyebrow text-warn">honestly deferred</div>
+          <div className="col-span-12 md:col-span-9 text-[12.5px] text-zinc-400 leading-snug">
+            <span className="text-zinc-200">Out of scope for v0.1:</span> key rotation UI · HSM-backed signing · multi-region gateway HA ·
+            production hardening review · benchmarks under load · plain-English → YAML compiler (roadmapped).
+            Treat this as a working prototype with a real cryptographic primitive — not a hardened production deployment.
           </div>
         </div>
       </div>
